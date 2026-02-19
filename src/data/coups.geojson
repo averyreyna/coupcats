@@ -1,0 +1,733 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [-70.65, -33.45] },
+      "properties": {
+        "id": "CPV-CL1973A",
+        "country": "Chile",
+        "countryCode": "CL",
+        "region": "Latin America",
+        "latitude": -33.45,
+        "longitude": -70.65,
+        "date": "1973-09-11",
+        "year": 1973,
+        "outcome": "successful",
+        "title": "1973 Chilean coup d'état",
+        "description": "Military coup led by Augusto Pinochet overthrew President Salvador Allende.",
+        "leaders": ["Augusto Pinochet"],
+        "tags": ["military"]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [32.85, 39.93] },
+      "properties": {
+        "id": "CPV-TR1960A",
+        "country": "Turkey",
+        "countryCode": "TR",
+        "region": "Middle East and North Africa",
+        "latitude": 39.93,
+        "longitude": 32.85,
+        "date": "1960-05-27",
+        "year": 1960,
+        "outcome": "successful",
+        "title": "1960 Turkish coup d'état",
+        "description": "Military coup overthrew Prime Minister Adnan Menderes.",
+        "tags": ["military"]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [3.39, 6.45] },
+      "properties": {
+        "id": "CPV-NG1966A",
+        "country": "Nigeria",
+        "countryCode": "NG",
+        "region": "Sub-Saharan Africa",
+        "latitude": 6.45,
+        "longitude": 3.39,
+        "date": "1966-01-15",
+        "year": 1966,
+        "outcome": "successful",
+        "title": "1966 Nigerian coup d'état",
+        "description": "Military officers assassinated political leaders and seized power.",
+        "tags": ["military"]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [51.42, 35.69] },
+      "properties": {
+        "id": "CPV-IR1953A",
+        "country": "Iran",
+        "countryCode": "IR",
+        "region": "Middle East and North Africa",
+        "latitude": 35.69,
+        "longitude": 51.42,
+        "date": "1953-08-19",
+        "year": 1953,
+        "outcome": "successful",
+        "title": "1953 Iranian coup d'état",
+        "description": "CIA-backed coup overthrew Prime Minister Mohammad Mosaddegh.",
+        "tags": ["palace coup"]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [31.24, 30.04] },
+      "properties": {
+        "id": "CPV-EG2013A",
+        "country": "Egypt",
+        "countryCode": "EG",
+        "region": "Middle East and North Africa",
+        "latitude": 30.04,
+        "longitude": 31.24,
+        "date": "2013-07-03",
+        "year": 2013,
+        "outcome": "successful",
+        "title": "2013 Egyptian coup d'état",
+        "description": "Military removed President Mohamed Morsi following mass protests.",
+        "tags": ["military"]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [100.50, 13.75] },
+      "properties": {
+        "id": "CPV-TH2014A",
+        "country": "Thailand",
+        "countryCode": "TH",
+        "region": "Southeast Asia",
+        "latitude": 13.75,
+        "longitude": 100.50,
+        "date": "2014-05-22",
+        "year": 2014,
+        "outcome": "successful",
+        "title": "2014 Thai coup d'état",
+        "description": "Royal Thai Army seized power after months of political crisis.",
+        "tags": ["military"]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [96.12, 19.75] },
+      "properties": {
+        "id": "CPV-MM2021A",
+        "country": "Myanmar",
+        "countryCode": "MM",
+        "region": "Southeast Asia",
+        "latitude": 19.75,
+        "longitude": 96.12,
+        "date": "2021-02-01",
+        "year": 2021,
+        "outcome": "successful",
+        "title": "2021 Myanmar coup d'état",
+        "description": "Tatmadaw detained Aung San Suu Kyi and declared state of emergency.",
+        "tags": ["military"]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [32.56, 15.50] },
+      "properties": {
+        "id": "CPV-SD2019A",
+        "country": "Sudan",
+        "countryCode": "SD",
+        "region": "Sub-Saharan Africa",
+        "latitude": 15.50,
+        "longitude": 32.56,
+        "date": "2019-04-11",
+        "year": 2019,
+        "outcome": "successful",
+        "title": "2019 Sudanese coup d'état",
+        "description": "Military ousted President Omar al-Bashir after sustained protests.",
+        "tags": ["military"]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [-8.00, 12.65] },
+      "properties": {
+        "id": "CPV-ML2020A",
+        "country": "Mali",
+        "countryCode": "ML",
+        "region": "Sub-Saharan Africa",
+        "latitude": 12.65,
+        "longitude": -8.00,
+        "date": "2020-08-18",
+        "year": 2020,
+        "outcome": "successful",
+        "title": "2020 Malian coup d'état",
+        "description": "Soldiers detained President Ibrahim Boubacar Keïta and dissolved government.",
+        "tags": ["military"]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [-68.15, -16.50] },
+      "properties": {
+        "id": "CPV-BO2019A",
+        "country": "Bolivia",
+        "countryCode": "BO",
+        "region": "Latin America",
+        "latitude": -16.50,
+        "longitude": -68.15,
+        "date": "2019-11-10",
+        "year": 2019,
+        "outcome": "attempted",
+        "title": "2019 Bolivian political crisis",
+        "description": "Military pressure and protests led to Evo Morales's resignation.",
+        "tags": ["civilian", "military"]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [23.73, 37.98] },
+      "properties": {
+        "id": "CPV-GR1967A",
+        "country": "Greece",
+        "countryCode": "GR",
+        "region": "Europe",
+        "latitude": 37.98,
+        "longitude": 23.73,
+        "date": "1967-04-21",
+        "year": 1967,
+        "outcome": "successful",
+        "title": "1967 Greek coup d'état",
+        "description": "Colonels' junta established military dictatorship for seven years.",
+        "tags": ["military"]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [73.06, 33.72] },
+      "properties": {
+        "id": "CPV-PK1999A",
+        "country": "Pakistan",
+        "countryCode": "PK",
+        "region": "South Asia",
+        "latitude": 33.72,
+        "longitude": 73.06,
+        "date": "1999-10-12",
+        "year": 1999,
+        "outcome": "successful",
+        "title": "1999 Pakistani coup d'état",
+        "description": "General Pervez Musharraf overthrew Prime Minister Nawaz Sharif.",
+        "leaders": ["Pervez Musharraf"],
+        "tags": ["military"]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [-58.38, -34.60] },
+      "properties": {
+        "id": "CPV-AR1976A",
+        "country": "Argentina",
+        "countryCode": "AR",
+        "region": "Latin America",
+        "latitude": -34.60,
+        "longitude": -58.38,
+        "date": "1976-03-24",
+        "year": 1976,
+        "outcome": "successful",
+        "title": "1976 Argentine coup d'état",
+        "description": "Military junta removed President Isabel Perón and began the Dirty War.",
+        "tags": ["military"]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [32.58, 0.32] },
+      "properties": {
+        "id": "CPV-UG1971A",
+        "country": "Uganda",
+        "countryCode": "UG",
+        "region": "Sub-Saharan Africa",
+        "latitude": 0.32,
+        "longitude": 32.58,
+        "date": "1971-01-25",
+        "year": 1971,
+        "outcome": "successful",
+        "title": "1971 Ugandan coup d'état",
+        "description": "Idi Amin seized power while President Milton Obote was abroad.",
+        "leaders": ["Idi Amin"],
+        "tags": ["military"]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [44.37, 33.32] },
+      "properties": {
+        "id": "CPV-IQ1958A",
+        "country": "Iraq",
+        "countryCode": "IQ",
+        "region": "Middle East and North Africa",
+        "latitude": 33.32,
+        "longitude": 44.37,
+        "date": "1958-07-14",
+        "year": 1958,
+        "outcome": "successful",
+        "title": "1958 Iraqi coup d'état",
+        "description": "Free Officers overthrew the Hashemite monarchy and established a republic.",
+        "tags": ["military"]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [13.19, 32.89] },
+      "properties": {
+        "id": "CPV-LY1969A",
+        "country": "Libya",
+        "countryCode": "LY",
+        "region": "Sub-Saharan Africa",
+        "latitude": 32.89,
+        "longitude": 13.19,
+        "date": "1969-09-01",
+        "year": 1969,
+        "outcome": "successful",
+        "title": "1969 Libyan coup d'état",
+        "description": "Muammar Gaddafi and Free Officers overthrew King Idris.",
+        "leaders": ["Muammar Gaddafi"],
+        "tags": ["military"]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [-9.14, 38.72] },
+      "properties": {
+        "id": "CPV-PT1974A",
+        "country": "Portugal",
+        "countryCode": "PT",
+        "region": "Europe",
+        "latitude": 38.72,
+        "longitude": -9.14,
+        "date": "1974-04-25",
+        "year": 1974,
+        "outcome": "successful",
+        "title": "1974 Carnation Revolution",
+        "description": "Military coup ended the Estado Novo dictatorship.",
+        "tags": ["military"]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [120.98, 14.60] },
+      "properties": {
+        "id": "CPV-PH1986A",
+        "country": "Philippines",
+        "countryCode": "PH",
+        "region": "Southeast Asia",
+        "latitude": 14.60,
+        "longitude": 120.98,
+        "date": "1986-02-22",
+        "year": 1986,
+        "outcome": "failed",
+        "title": "1986 Philippines coup attempt",
+        "description": "Military rebels joined People Power Revolution; Marcos fled.",
+        "tags": ["military"]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [37.62, 55.75] },
+      "properties": {
+        "id": "CPV-SU1991A",
+        "country": "Soviet Union",
+        "countryCode": "SU",
+        "region": "Europe",
+        "latitude": 55.75,
+        "longitude": 37.62,
+        "date": "1991-08-19",
+        "year": 1991,
+        "outcome": "failed",
+        "title": "1991 Soviet coup attempt",
+        "description": "Hardliners attempted to reverse perestroika; coup collapsed in days.",
+        "tags": ["military"]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [-3.70, 40.42] },
+      "properties": {
+        "id": "CPV-ES1981A",
+        "country": "Spain",
+        "countryCode": "ES",
+        "region": "Europe",
+        "latitude": 40.42,
+        "longitude": -3.70,
+        "date": "1981-02-23",
+        "year": 1981,
+        "outcome": "failed",
+        "title": "1981 Spanish coup attempt",
+        "description": "Civil Guard Lieutenant Colonel Tejero stormed Congress; King opposed coup.",
+        "tags": ["military"]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [-66.90, 10.48] },
+      "properties": {
+        "id": "CPV-VE2002A",
+        "country": "Venezuela",
+        "countryCode": "VE",
+        "region": "Latin America",
+        "latitude": 10.48,
+        "longitude": -66.90,
+        "date": "2002-04-11",
+        "year": 2002,
+        "outcome": "failed",
+        "title": "2002 Venezuelan coup attempt",
+        "description": "Brief ouster of Chávez reversed after loyalists and popular mobilization.",
+        "tags": ["military", "civilian"]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [32.85, 39.93] },
+      "properties": {
+        "id": "CPV-TR2016A",
+        "country": "Turkey",
+        "countryCode": "TR",
+        "region": "Middle East and North Africa",
+        "latitude": 39.93,
+        "longitude": 32.85,
+        "date": "2016-07-15",
+        "year": 2016,
+        "outcome": "failed",
+        "title": "2016 Turkish coup attempt",
+        "description": "Faction of armed forces attempted takeover; defeated by loyalist forces and public.",
+        "tags": ["military"]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [-78.47, -0.22] },
+      "properties": {
+        "id": "CPV-EC2010A",
+        "country": "Ecuador",
+        "countryCode": "EC",
+        "region": "Latin America",
+        "latitude": -0.22,
+        "longitude": -78.47,
+        "date": "2010-09-30",
+        "year": 2010,
+        "outcome": "attempted",
+        "title": "2010 Ecuador crisis",
+        "description": "Police rebellion and brief detention of President Correa; resolved without takeover.",
+        "tags": ["military", "civilian"]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [3.04, 36.75] },
+      "properties": {
+        "id": "CPV-DZ1992A",
+        "country": "Algeria",
+        "countryCode": "DZ",
+        "region": "Middle East and North Africa",
+        "latitude": 36.75,
+        "longitude": 3.04,
+        "date": "1992-01-11",
+        "year": 1992,
+        "outcome": "successful",
+        "title": "1992 Algerian coup d'état",
+        "description": "Military cancelled elections and forced President Bendjedid to resign.",
+        "tags": ["military"]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [-16.58, 13.45] },
+      "properties": {
+        "id": "CPV-GM1994A",
+        "country": "Gambia",
+        "countryCode": "GM",
+        "region": "Sub-Saharan Africa",
+        "latitude": 13.45,
+        "longitude": -16.58,
+        "date": "1994-07-22",
+        "year": 1994,
+        "outcome": "successful",
+        "title": "1994 Gambian coup d'état",
+        "description": "Lieutenant Yahya Jammeh overthrew President Dawda Jawara.",
+        "leaders": ["Yahya Jammeh"],
+        "tags": ["military"]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [-15.18, 11.86] },
+      "properties": {
+        "id": "CPV-GW2003A",
+        "country": "Guinea-Bissau",
+        "countryCode": "GW",
+        "region": "Sub-Saharan Africa",
+        "latitude": 11.86,
+        "longitude": -15.18,
+        "date": "2003-09-14",
+        "year": 2003,
+        "outcome": "successful",
+        "title": "2003 Guinea-Bissau coup d'état",
+        "description": "Military deposed President Kumba Ialá.",
+        "tags": ["military"]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [-15.96, 18.07] },
+      "properties": {
+        "id": "CPV-MR2008A",
+        "country": "Mauritania",
+        "countryCode": "MR",
+        "region": "Sub-Saharan Africa",
+        "latitude": 18.07,
+        "longitude": -15.96,
+        "date": "2008-08-06",
+        "year": 2008,
+        "outcome": "successful",
+        "title": "2008 Mauritanian coup d'état",
+        "description": "General Mohamed Ould Abdel Aziz deposed President Sidi Ould Cheikh Abdallahi.",
+        "tags": ["military"]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [2.11, 13.51] },
+      "properties": {
+        "id": "CPV-NE2010A",
+        "country": "Niger",
+        "countryCode": "NE",
+        "region": "Sub-Saharan Africa",
+        "latitude": 13.51,
+        "longitude": 2.11,
+        "date": "2010-02-18",
+        "year": 2010,
+        "outcome": "successful",
+        "title": "2010 Nigerien coup d'état",
+        "description": "Military ousted President Tandja after constitutional crisis.",
+        "tags": ["military"]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [-1.52, 12.37] },
+      "properties": {
+        "id": "CPV-BF2014A",
+        "country": "Burkina Faso",
+        "countryCode": "BF",
+        "region": "Sub-Saharan Africa",
+        "latitude": 12.37,
+        "longitude": -1.52,
+        "date": "2014-10-30",
+        "year": 2014,
+        "outcome": "successful",
+        "title": "2014 Burkinabé uprising",
+        "description": "Mass protests and military action forced Blaise Compaoré to resign.",
+        "tags": ["military", "civilian"]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [31.05, -17.83] },
+      "properties": {
+        "id": "CPV-ZW2017A",
+        "country": "Zimbabwe",
+        "countryCode": "ZW",
+        "region": "Sub-Saharan Africa",
+        "latitude": -17.83,
+        "longitude": 31.05,
+        "date": "2017-11-15",
+        "year": 2017,
+        "outcome": "successful",
+        "title": "2017 Zimbabwean coup d'état",
+        "description": "Military placed Robert Mugabe under house arrest; he resigned days later.",
+        "tags": ["military"]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [32.56, 15.50] },
+      "properties": {
+        "id": "CPV-SD1989A",
+        "country": "Sudan",
+        "countryCode": "SD",
+        "region": "Sub-Saharan Africa",
+        "latitude": 15.50,
+        "longitude": 32.56,
+        "date": "1989-06-30",
+        "year": 1989,
+        "outcome": "successful",
+        "title": "1989 Sudanese coup d'état",
+        "description": "Omar al-Bashir led military coup that toppled elected government.",
+        "leaders": ["Omar al-Bashir"],
+        "tags": ["military"]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [-10.80, 6.31] },
+      "properties": {
+        "id": "CPV-LR1980A",
+        "country": "Liberia",
+        "countryCode": "LR",
+        "region": "Sub-Saharan Africa",
+        "latitude": 6.31,
+        "longitude": -10.80,
+        "date": "1980-04-12",
+        "year": 1980,
+        "outcome": "successful",
+        "title": "1980 Liberian coup d'état",
+        "description": "Master Sergeant Samuel Doe overthrew and killed President William Tolbert.",
+        "leaders": ["Samuel Doe"],
+        "tags": ["military"]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [-13.23, 8.49] },
+      "properties": {
+        "id": "CPV-SL1992A",
+        "country": "Sierra Leone",
+        "countryCode": "SL",
+        "region": "Sub-Saharan Africa",
+        "latitude": 8.49,
+        "longitude": -13.23,
+        "date": "1992-04-29",
+        "year": 1992,
+        "outcome": "successful",
+        "title": "1992 Sierra Leonean coup d'état",
+        "description": "Young military officers overthrew President Joseph Momoh.",
+        "tags": ["military"]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [18.56, 4.37] },
+      "properties": {
+        "id": "CPV-CF2003A",
+        "country": "Central African Republic",
+        "countryCode": "CF",
+        "region": "Sub-Saharan Africa",
+        "latitude": 4.37,
+        "longitude": 18.56,
+        "date": "2003-03-15",
+        "year": 2003,
+        "outcome": "successful",
+        "title": "2003 Central African Republic coup",
+        "description": "General François Bozizé seized power from President Ange-Félix Patassé.",
+        "tags": ["military"]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [100.50, 13.75] },
+      "properties": {
+        "id": "CPV-TH2006A",
+        "country": "Thailand",
+        "countryCode": "TH",
+        "region": "Southeast Asia",
+        "latitude": 13.75,
+        "longitude": 100.50,
+        "date": "2006-09-19",
+        "year": 2006,
+        "outcome": "successful",
+        "title": "2006 Thai coup d'état",
+        "description": "Military removed Prime Minister Thaksin Shinawatra while he was abroad.",
+        "tags": ["military"]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [-87.20, 14.09] },
+      "properties": {
+        "id": "CPV-HN2009A",
+        "country": "Honduras",
+        "countryCode": "HN",
+        "region": "Latin America",
+        "latitude": 14.09,
+        "longitude": -87.20,
+        "date": "2009-06-28",
+        "year": 2009,
+        "outcome": "successful",
+        "title": "2009 Honduran coup d'état",
+        "description": "Military expelled President Manuel Zelaya; widely condemned internationally.",
+        "tags": ["military"]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [31.24, 30.04] },
+      "properties": {
+        "id": "CPV-EG1952A",
+        "country": "Egypt",
+        "countryCode": "EG",
+        "region": "Middle East and North Africa",
+        "latitude": 30.04,
+        "longitude": 31.24,
+        "date": "1952-07-23",
+        "year": 1952,
+        "outcome": "successful",
+        "title": "1952 Egyptian revolution",
+        "description": "Free Officers Movement overthrew King Farouk and established republic.",
+        "leaders": ["Gamal Abdel Nasser", "Mohamed Naguib"],
+        "tags": ["military"]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [38.75, 9.03] },
+      "properties": {
+        "id": "CPV-ET1960A",
+        "country": "Ethiopia",
+        "countryCode": "ET",
+        "region": "Sub-Saharan Africa",
+        "latitude": 9.03,
+        "longitude": 38.75,
+        "date": "1960-12-13",
+        "year": 1960,
+        "outcome": "attempted",
+        "title": "1960 Ethiopian coup attempt",
+        "description": "Coup leaders briefly held Emperor Haile Selassie; loyalists restored him.",
+        "tags": ["military"]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [32.85, 39.93] },
+      "properties": {
+        "id": "CPV-TR1962A",
+        "country": "Turkey",
+        "countryCode": "TR",
+        "region": "Middle East and North Africa",
+        "latitude": 39.93,
+        "longitude": 32.85,
+        "date": "1962-02-22",
+        "year": 1962,
+        "outcome": "attempted",
+        "title": "1962 Turkish coup attempt",
+        "description": "Colonel Talat Aydemir led failed coup attempt in Ankara.",
+        "tags": ["military"]
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [51.42, 35.69] },
+      "properties": {
+        "id": "CPV-IR1980A",
+        "country": "Iran",
+        "countryCode": "IR",
+        "region": "Middle East and North Africa",
+        "latitude": 35.69,
+        "longitude": 51.42,
+        "date": "1980-07-09",
+        "year": 1980,
+        "outcome": "plot",
+        "title": "1980 Nojeh coup plot",
+        "description": "Alleged plot by military officers to overthrow nascent Islamic Republic.",
+        "tags": ["plot", "military"]
+      }
+    }
+  ]
+}
