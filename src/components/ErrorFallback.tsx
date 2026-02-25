@@ -10,7 +10,7 @@ export default function ErrorFallback({
   resetErrorBoundary,
 }: ErrorFallbackProps) {
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-[#0f1117] px-4 text-center">
+    <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-[#0f1117] pl-[max(1rem,env(safe-area-inset-left))] pr-[max(1rem,env(safe-area-inset-right))] text-center">
       <AlertCircle className="h-12 w-12 text-amber-500" />
       <h1 className="text-lg font-semibold text-white">Something went wrong</h1>
       <p className="max-w-md text-sm text-gray-400">{error.message}</p>

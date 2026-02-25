@@ -101,7 +101,11 @@ export default function EventsPanel({ events, mapRef }: EventsPanelProps) {
 
   return (
     <div className="flex w-full shrink-0 flex-col border-r border-gray-800 bg-[#0f1117] md:w-[320px]">
-      <div className="flex items-center justify-between border-b border-gray-800 px-4 py-3">
+      {/* Drag handle: mobile only */}
+      <div className="flex flex-shrink-0 justify-center pt-2 md:hidden" aria-hidden>
+        <div className="h-1 w-10 rounded-full bg-gray-600" />
+      </div>
+      <div className="flex min-h-[44px] items-center justify-between border-b border-gray-800 px-3 py-2.5 md:px-4 md:py-3">
         <span className="text-sm font-medium text-gray-300">
           {sorted.length} event{sorted.length !== 1 ? "s" : ""}
         </span>
@@ -109,7 +113,7 @@ export default function EventsPanel({ events, mapRef }: EventsPanelProps) {
           <button
             type="button"
             onClick={() => setSortOpen((o) => !o)}
-            className="flex items-center gap-1 rounded border border-gray-700 bg-gray-800/80 px-2 py-1.5 text-xs text-gray-300 hover:bg-gray-700/80"
+            className="flex min-h-[44px] min-w-[44px] items-center justify-center gap-1 rounded border border-gray-700 bg-gray-800/80 px-2 py-1.5 text-xs text-gray-300 hover:bg-gray-700/80 md:min-h-0 md:min-w-0 md:justify-start"
           >
             {sortLabel}
             <ChevronDown className="h-3.5 w-3.5" />
@@ -146,7 +150,7 @@ export default function EventsPanel({ events, mapRef }: EventsPanelProps) {
           )}
         </div>
       </div>
-      <div className="flex-1 overflow-y-auto">
+      <div className="panel-scroll flex-1 overflow-y-auto">
         {sorted.length === 0 ? (
           <div className="flex flex-col items-center justify-center gap-2 px-4 py-12 text-center text-sm text-gray-500">
             <p>No events match the current filters.</p>
@@ -161,7 +165,7 @@ export default function EventsPanel({ events, mapRef }: EventsPanelProps) {
                   <button
                     type="button"
                     onClick={() => handleSelect(event)}
-                    className="flex w-full flex-col gap-1 px-4 py-3 text-left transition-colors hover:bg-gray-800/60"
+                    className="flex min-h-[52px] w-full flex-col justify-center gap-1 px-4 py-3.5 text-left transition-colors hover:bg-gray-800/60"
                   >
                     <div className="flex items-center gap-2">
                       <span className="text-lg leading-none">

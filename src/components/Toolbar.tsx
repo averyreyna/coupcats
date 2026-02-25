@@ -31,20 +31,20 @@ export default function Toolbar({ regions, tags }: ToolbarProps) {
   const toggleTag = useFilterStore((s) => s.toggleTag);
 
   return (
-    <div className="absolute left-0 right-0 top-0 z-10 flex items-center justify-between gap-4 border-b border-gray-800/50 bg-[#0f1117]/80 px-4 py-3 backdrop-blur-sm">
-      <div className="flex flex-1 items-center gap-2">
-        <div className="relative flex flex-1 max-w-md items-center">
+    <div className="absolute left-0 right-0 top-0 z-10 flex flex-col gap-2 border-b border-gray-800/50 bg-[#0f1117]/80 px-3 py-3 pt-[max(0.75rem,env(safe-area-inset-top))] backdrop-blur-sm md:flex-row md:items-center md:justify-between md:gap-4 md:px-4">
+      <div className="flex min-w-0 flex-1 items-center">
+        <div className="relative flex w-full max-w-md items-center">
           <Search className="absolute left-3 h-4 w-4 text-gray-500" />
           <input
             type="search"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search for anything..."
-            className="w-full rounded-lg border border-gray-700 bg-gray-800/90 py-2 pl-9 pr-3 text-sm text-white placeholder-gray-500 focus:border-amber-500/50 focus:outline-none focus:ring-1 focus:ring-amber-500/50"
+            className="min-h-[44px] w-full rounded-lg border border-gray-700 bg-gray-800/90 py-2.5 pl-9 pr-3 text-sm text-white placeholder-gray-500 focus:border-amber-500/50 focus:outline-none focus:ring-1 focus:ring-amber-500/50"
           />
         </div>
       </div>
-      <div className="flex items-center gap-2">
+      <div className="flex min-w-0 shrink-0 items-center gap-2 overflow-x-auto pb-1 md:overflow-visible md:pb-0">
         <FilterDropdown label="Status">
           <div className="flex flex-col gap-0.5 px-2">
             {OUTCOMES.map(({ value, label }) => (

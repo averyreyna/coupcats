@@ -28,9 +28,8 @@ export default function Sidebar({ activeNav, onNavChange }: SidebarProps) {
 
   return (
     <aside
-      className={`flex h-14 w-full shrink-0 flex-row items-center justify-around border-t border-gray-800 bg-[#0f1117] transition-[width] duration-300 ease-in-out md:h-full md:flex-col md:justify-start md:border-r md:border-t-0 ${collapsed ? "md:w-[72px]" : "md:w-[280px]"}`}
+      className={`flex h-14 w-full shrink-0 flex-row items-center justify-around border-t border-gray-800 bg-[#0f1117] pb-[env(safe-area-inset-bottom)] transition-[width] duration-300 ease-in-out md:h-full md:flex-col md:justify-start md:border-r md:border-t-0 md:pb-0 ${collapsed ? "md:w-[72px]" : "md:w-[280px]"}`}
     >
-      {/* Mobile: logo + nav icons in a row */}
       <div className="flex flex-1 items-center justify-around gap-0 md:hidden">
         <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-amber-500/20 text-amber-400">
           <Globe className="h-5 w-5" />
@@ -42,7 +41,7 @@ export default function Sidebar({ activeNav, onNavChange }: SidebarProps) {
               key={id}
               type="button"
               onClick={() => onNavChange(id)}
-              className={`rounded-lg p-2 transition-colors hover:bg-gray-800/60 ${isActive ? "text-amber-400" : "text-gray-400"}`}
+              className={`flex min-h-[44px] min-w-[44px] flex-shrink-0 items-center justify-center rounded-lg transition-colors hover:bg-gray-800/60 ${isActive ? "text-amber-400" : "text-gray-400"}`}
               title={label}
             >
               <Icon className="h-5 w-5" />
@@ -51,7 +50,6 @@ export default function Sidebar({ activeNav, onNavChange }: SidebarProps) {
         })}
       </div>
 
-      {/* Desktop: full sidebar */}
       <div className="hidden md:flex md:h-full md:w-full md:flex-col">
         <div className="flex min-h-[56px] items-center gap-3 border-b border-gray-800 px-3">
           <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-amber-500/20 text-amber-400">

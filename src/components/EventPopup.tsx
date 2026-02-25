@@ -29,7 +29,7 @@ export default function EventPopup({ event }: EventPopupProps) {
 
   return (
     <div
-      className="popup-enter min-w-[240px] max-w-[320px] rounded-lg border border-gray-700/50 bg-[#1a1d26] shadow-xl pt-7 pr-7 pb-3 pl-3"
+      className="popup-enter min-w-[240px] max-w-[min(320px,calc(100vw-2rem))] rounded-lg border border-gray-700/50 bg-[#1a1d26] shadow-xl pt-7 pr-7 pb-3 pl-3"
       style={{ fontFamily: "'DM Sans', sans-serif" }}
     >
       <div className="font-mono text-xs text-gray-500" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
