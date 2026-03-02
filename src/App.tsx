@@ -1,6 +1,5 @@
 import { useRef, useState, useCallback, useEffect, useMemo } from "react";
-import Map, { Source, Layer, Popup } from "react-map-gl/maplibre";
-import type { MapRef } from "react-map-gl/maplibre";
+import { Map, Source, Layer, Popup, type MapRef } from "@vis.gl/react-maplibre";
 import type {
   CircleLayerSpecification,
   FilterSpecification,
@@ -24,8 +23,8 @@ const circleLayerPaint: CircleLayerSpecification["paint"] = {
   "circle-radius": [
     "case",
     ["boolean", ["feature-state", "hover"], false],
+    14,
     10,
-    7,
   ],
   "circle-color": [
     "match",
@@ -42,9 +41,9 @@ const circleLayerPaint: CircleLayerSpecification["paint"] = {
     "#64748b",
     "#64748b",
   ],
-  "circle-stroke-width": 1.5,
-  "circle-stroke-color": "#1e293b",
-  "circle-opacity": 0.85,
+  "circle-stroke-width": 2,
+  "circle-stroke-color": "#020617",
+  "circle-opacity": 1,
 };
 
 export default function App() {
@@ -97,17 +96,10 @@ export default function App() {
     ]
   );
 
-  const layerFilter: FilterSpecification | undefined = hasFilter
-    ? filteredIds.length === 0
-      ? (["in", ["get", "id"], ["literal", []]] as FilterSpecification)
-      : (["in", ["get", "id"], ["literal", filteredIds]] as FilterSpecification)
-    : undefined;
-
   const circleLayerStyle: CircleLayerSpecification = {
     id: "coup-circles",
     type: "circle",
     source: "coups",
-    ...(layerFilter != null && { filter: layerFilter }),
     paint: circleLayerPaint,
   };
 
