@@ -9,20 +9,20 @@ import EventsPanel from "./EventsPanel";
 export interface LayoutProps {
   children: React.ReactNode;
   mapRef: React.RefObject<MapRef | null>;
-  events: CoupEvent[];
+  allEvents: CoupEvent[];
 }
 
-export default function Layout({ children, mapRef, events }: LayoutProps) {
+export default function Layout({ children, mapRef, allEvents }: LayoutProps) {
   const [activeNav, setActiveNav] = useState<NavId>("home");
 
   const regions = useMemo(
-    () => [...new Set(events.map((e) => e.region))].sort(),
-    [events]
+    () => [...new Set(allEvents.map((event) => event.region))].sort(),
+    [allEvents]
   );
   const tags = useMemo(
     () =>
-      [...new Set(events.flatMap((e) => e.tags ?? []))].sort(),
-    [events]
+      [...new Set(allEvents.flatMap((event) => event.tags ?? []))].sort(),
+    [allEvents]
   );
 
   return (
@@ -33,7 +33,7 @@ export default function Layout({ children, mapRef, events }: LayoutProps) {
         <div className="relative flex min-h-0 flex-1 min-w-0">
           {activeNav === "events" && (
             <div className="fixed bottom-0 left-0 z-30 flex max-h-[85vh] w-full shrink-0 overflow-hidden rounded-t-xl border-t border-gray-800 bg-[#0f1117] pb-[env(safe-area-inset-bottom)] shadow-2xl transition-all duration-300 ease-out md:relative md:w-[320px] md:max-h-none md:rounded-none md:border-r md:border-t-0 md:pb-0 md:shadow-none">
-              <EventsPanel events={events} mapRef={mapRef} />
+              <EventsPanel allEvents={allEvents} mapRef={mapRef} />
             </div>
           )}
           <div className="min-h-0 min-w-0 flex-1">{children}</div>

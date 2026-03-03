@@ -1,24 +1,24 @@
-import { useRef, useState, useCallback, useEffect, useMemo } from "react";
+import { useRef, useState, useCallback, useMemo } from "react";
 import { Map, Source, Layer, Popup, type MapRef } from "@vis.gl/react-maplibre";
 import type {
   CircleLayerSpecification,
-  FilterSpecification,
   MapLayerMouseEvent,
-  MapMouseEvent,
 } from "maplibre-gl";
 import type { CoupEvent } from "./types/coup";
 import EventPopup from "./components/EventPopup";
 import MapLegend from "./components/MapLegend";
 import Layout from "./components/Layout";
 import { useFilterStore } from "./store/useFilterStore";
-import { getFilteredIds } from "./lib/filterHelpers";
-import coupsDataRaw from "./data/coups.geojson?raw";
-
-const coupsData = JSON.parse(coupsDataRaw) as GeoJSON.FeatureCollection;
+import { OUTCOME_COLORS } from "./lib/colors";
+import { getCoupsFeatureCollection, getAllCoupEvents } from "./lib/coupData";
+import { useMapHover } from "./hooks/useMapHover";
+import { useEscapeToClearSelection } from "./hooks/useEscapeToClearSelection";
+import { useClearSelectionOnMapClick } from "./hooks/useClearSelectionOnMapClick";
 
 const MAP_STYLE =
   "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json";
 
+// maplibre expressions: radius by feature-state hover, color by outcome property
 const circleLayerPaint: CircleLayerSpecification["paint"] = {
   "circle-radius": [
     "case",
@@ -30,16 +30,16 @@ const circleLayerPaint: CircleLayerSpecification["paint"] = {
     "match",
     ["get", "outcome"],
     "successful",
-    "#f59e0b",
+    OUTCOME_COLORS.successful,
     "failed",
-    "#ef4444",
+    OUTCOME_COLORS.failed,
     "attempted",
-    "#f97316",
+    OUTCOME_COLORS.attempted,
     "plot",
-    "#64748b",
+    OUTCOME_COLORS.plot,
     "alleged",
-    "#64748b",
-    "#64748b",
+    OUTCOME_COLORS.alleged,
+    OUTCOME_COLORS.alleged,
   ],
   "circle-stroke-width": 2,
   "circle-stroke-color": "#020617",
@@ -48,53 +48,12 @@ const circleLayerPaint: CircleLayerSpecification["paint"] = {
 
 export default function App() {
   const mapRef = useRef<MapRef>(null);
-  const [hoveredId, setHoveredId] = useState<string | number | null>(null);
   const [mapLoaded, setMapLoaded] = useState(false);
 
-  const allEvents = useMemo(
-    () =>
-      (coupsData.features || []).map(
-        (f) => (f as GeoJSON.Feature<GeoJSON.Point, CoupEvent>).properties
-      ) as CoupEvent[],
-    []
-  );
+  const allEvents = useMemo(() => getAllCoupEvents(), []);
 
-  const searchQuery = useFilterStore((s) => s.searchQuery);
-  const selectedOutcomes = useFilterStore((s) => s.selectedOutcomes);
-  const selectedRegions = useFilterStore((s) => s.selectedRegions);
-  const dateRange = useFilterStore((s) => s.dateRange);
-  const selectedTags = useFilterStore((s) => s.selectedTags);
   const selectedEvent = useFilterStore((s) => s.selectedEvent);
   const setSelectedEvent = useFilterStore((s) => s.setSelectedEvent);
-
-  const selectedDecades = useFilterStore((s) => s.selectedDecades);
-  const hasFilter =
-    searchQuery.trim() !== "" ||
-    selectedOutcomes.length > 0 ||
-    selectedRegions.length > 0 ||
-    selectedTags.length > 0 ||
-    selectedDecades.length > 0 ||
-    dateRange[0] !== 1950 ||
-    dateRange[1] !== 2030;
-
-  const filteredIds = useMemo(
-    () =>
-      getFilteredIds(allEvents, {
-        searchQuery,
-        selectedOutcomes,
-        selectedRegions,
-        dateRange,
-        selectedTags,
-      }),
-    [
-      allEvents,
-      searchQuery,
-      selectedOutcomes,
-      selectedRegions,
-      dateRange,
-      selectedTags,
-    ]
-  );
 
   const circleLayerStyle: CircleLayerSpecification = {
     id: "coup-circles",
@@ -103,41 +62,10 @@ export default function App() {
     paint: circleLayerPaint,
   };
 
-  const onMouseEnter = useCallback(
-    (e: { features?: Array<{ id?: string | number }> }) => {
-      const map = mapRef.current?.getMap();
-      if (!map || !e.features?.length) return;
-      const feature = e.features[0];
-      if (feature.id != null) {
-        if (hoveredId != null && hoveredId !== feature.id) {
-          map.setFeatureState(
-            { source: "coups", id: hoveredId },
-            { hover: false }
-          );
-        }
-        setHoveredId(feature.id);
-        map.getCanvas().style.cursor = "pointer";
-        map.setFeatureState(
-          { source: "coups", id: feature.id },
-          { hover: true }
-        );
-      }
-    },
-    [hoveredId]
-  );
-
-  const onMouseLeave = useCallback(() => {
-    const map = mapRef.current?.getMap();
-    if (!map) return;
-    if (hoveredId != null) {
-      map.setFeatureState(
-        { source: "coups", id: hoveredId },
-        { hover: false }
-      );
-      setHoveredId(null);
-    }
-    map.getCanvas().style.cursor = "";
-  }, [hoveredId]);
+  const { onMouseEnter, onMouseLeave } = useMapHover({
+    mapRef,
+    sourceId: "coups",
+  });
 
   const onClick = useCallback(
     (e: MapLayerMouseEvent) => {
@@ -150,31 +78,16 @@ export default function App() {
     [setSelectedEvent]
   );
 
-  useEffect(() => {
-    const map = mapRef.current?.getMap();
-    if (!map) return;
-    const onMapClick = (e: MapMouseEvent) => {
-      const features = map.queryRenderedFeatures([e.point.x, e.point.y], {
-        layers: ["coup-circles"],
-      });
-      if (features.length === 0) setSelectedEvent(null);
-    };
-    map.on("click", onMapClick);
-    return () => {
-      map.off("click", onMapClick);
-    };
-  }, [setSelectedEvent]);
+  useClearSelectionOnMapClick({
+    mapRef,
+    layerIds: ["coup-circles"],
+    setSelectedEvent,
+  });
 
-  useEffect(() => {
-    const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setSelectedEvent(null);
-    };
-    window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
-  }, [setSelectedEvent]);
+  useEscapeToClearSelection(setSelectedEvent);
 
   return (
-    <Layout mapRef={mapRef} events={allEvents}>
+    <Layout mapRef={mapRef} allEvents={allEvents}>
       <div className="relative h-full w-full">
         {!mapLoaded && (
           <div className="absolute inset-0 z-20 flex items-center justify-center bg-[#0f1117]">
@@ -198,7 +111,7 @@ export default function App() {
           <Source
             id="coups"
             type="geojson"
-            data={coupsData}
+            data={getCoupsFeatureCollection()}
             promoteId="id"
           >
             <Layer {...circleLayerStyle} />

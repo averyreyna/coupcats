@@ -1,5 +1,6 @@
 import { Search } from "lucide-react";
 import FilterDropdown from "./FilterDropdown";
+import FilterCheckboxItem from "./FilterCheckboxItem";
 import { useFilterStore } from "../store/useFilterStore";
 import type { CoupOutcome } from "../types/coup";
 
@@ -48,36 +49,24 @@ export default function Toolbar({ regions, tags }: ToolbarProps) {
         <FilterDropdown label="Status">
           <div className="flex flex-col gap-0.5 px-2">
             {OUTCOMES.map(({ value, label }) => (
-              <label
+              <FilterCheckboxItem
                 key={value}
-                className="flex cursor-pointer items-center gap-2 rounded px-2 py-1.5 hover:bg-gray-800"
-              >
-                <input
-                  type="checkbox"
-                  checked={selectedOutcomes.includes(value)}
-                  onChange={() => toggleOutcome(value)}
-                  className="h-4 w-4 rounded border-gray-600 bg-gray-800 text-amber-500 focus:ring-amber-500/50"
-                />
-                <span className="text-sm text-gray-200">{label}</span>
-              </label>
+                label={label}
+                checked={selectedOutcomes.includes(value)}
+                onChange={() => toggleOutcome(value)}
+              />
             ))}
           </div>
         </FilterDropdown>
         <FilterDropdown label="Date">
           <div className="flex max-h-48 flex-col gap-0.5 overflow-y-auto px-2 py-1">
             {DECADES.map((decade) => (
-              <label
+              <FilterCheckboxItem
                 key={decade}
-                className="flex cursor-pointer items-center gap-2 rounded px-2 py-1.5 hover:bg-gray-800"
-              >
-                <input
-                  type="checkbox"
-                  checked={selectedDecades.includes(decade)}
-                  onChange={() => toggleDecade(decade)}
-                  className="h-4 w-4 rounded border-gray-600 bg-gray-800 text-amber-500 focus:ring-amber-500/50"
-                />
-                <span className="text-sm text-gray-200">{decade}s</span>
-              </label>
+                label={`${decade}s`}
+                checked={selectedDecades.includes(decade)}
+                onChange={() => toggleDecade(decade)}
+              />
             ))}
           </div>
         </FilterDropdown>
@@ -89,18 +78,12 @@ export default function Toolbar({ regions, tags }: ToolbarProps) {
               </span>
             ) : (
               regions.map((region) => (
-                <label
+                <FilterCheckboxItem
                   key={region}
-                  className="flex cursor-pointer items-center gap-2 rounded px-2 py-1.5 hover:bg-gray-800"
-                >
-                  <input
-                    type="checkbox"
-                    checked={selectedRegions.includes(region)}
-                    onChange={() => toggleRegion(region)}
-                    className="h-4 w-4 rounded border-gray-600 bg-gray-800 text-amber-500 focus:ring-amber-500/50"
-                  />
-                  <span className="text-sm text-gray-200">{region}</span>
-                </label>
+                  label={region}
+                  checked={selectedRegions.includes(region)}
+                  onChange={() => toggleRegion(region)}
+                />
               ))
             )}
           </div>
@@ -113,18 +96,12 @@ export default function Toolbar({ regions, tags }: ToolbarProps) {
               </span>
             ) : (
               tags.map((tag) => (
-                <label
+                <FilterCheckboxItem
                   key={tag}
-                  className="flex cursor-pointer items-center gap-2 rounded px-2 py-1.5 hover:bg-gray-800"
-                >
-                  <input
-                    type="checkbox"
-                    checked={selectedTags.includes(tag)}
-                    onChange={() => toggleTag(tag)}
-                    className="h-4 w-4 rounded border-gray-600 bg-gray-800 text-amber-500 focus:ring-amber-500/50"
-                  />
-                  <span className="text-sm text-gray-200">{tag}</span>
-                </label>
+                  label={tag}
+                  checked={selectedTags.includes(tag)}
+                  onChange={() => toggleTag(tag)}
+                />
               ))
             )}
           </div>

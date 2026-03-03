@@ -39,6 +39,7 @@ function matchesTags(event: CoupEvent, selected: string[]): boolean {
   return selected.some((t) => eventTags.includes(t));
 }
 
+// empty selections mean filter off; tags match if event has any selected tag
 export function filterEvents(
   events: CoupEvent[],
   state: Pick<

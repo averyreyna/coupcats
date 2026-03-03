@@ -76,6 +76,7 @@ export const useFilterStore = create<FilterState>((set) => ({
       selectedDecades: [],
       dateRange: INITIAL_DATE_RANGE,
       selectedTags: [],
+      selectedEvent: null,
     }),
   setSelectedEvent: (event) => set({ selectedEvent: event }),
 }));

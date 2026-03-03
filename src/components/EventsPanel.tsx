@@ -2,20 +2,12 @@ import { useMemo, useState } from "react";
 import { ChevronDown } from "lucide-react";
 import { useFilterStore } from "../store/useFilterStore";
 import { filterEvents } from "../lib/filterHelpers";
-import type { CoupEvent, CoupOutcome } from "../types/coup";
+import type { CoupEvent } from "../types/coup";
 import type { MapRef } from "react-map-gl/maplibre";
+import { OUTCOME_STYLES } from "../lib/outcomeStyles";
+import { formatDate } from "../lib/date";
 
-const OUTCOME_STYLES: Record<
-  CoupOutcome,
-  { bg: string; label: string }
-> = {
-  successful: { bg: "bg-emerald-500/20 text-emerald-300", label: "Successful" },
-  failed: { bg: "bg-red-500/20 text-red-300", label: "Failed" },
-  attempted: { bg: "bg-amber-500/20 text-amber-300", label: "Attempted" },
-  plot: { bg: "bg-slate-500/20 text-slate-300", label: "Plot" },
-  alleged: { bg: "bg-slate-500/20 text-slate-300", label: "Alleged" },
-};
-
+// unicode regional indicator: two letters -> two codepoints (base 0x1f1e6, A=65)
 function countryCodeToFlag(code: string): string {
   if (!code || code.length !== 2) return "🏳️";
   const base = 0x1f1e6;
@@ -24,22 +16,14 @@ function countryCodeToFlag(code: string): string {
   return String.fromCodePoint(c1, c2);
 }
 
-function formatDate(iso: string): string {
-  return new Date(iso).toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  });
-}
-
 export type EventsSort = "date-desc" | "date-asc" | "country-asc";
 
 export interface EventsPanelProps {
-  events: CoupEvent[];
+  allEvents: CoupEvent[];
   mapRef: React.RefObject<MapRef | null>;
 }
 
-export default function EventsPanel({ events, mapRef }: EventsPanelProps) {
+export default function EventsPanel({ allEvents, mapRef }: EventsPanelProps) {
   const [sort, setSort] = useState<EventsSort>("date-desc");
   const [sortOpen, setSortOpen] = useState(false);
 
@@ -50,9 +34,9 @@ export default function EventsPanel({ events, mapRef }: EventsPanelProps) {
   const selectedTags = useFilterStore((s) => s.selectedTags);
   const setSelectedEvent = useFilterStore((s) => s.setSelectedEvent);
 
-  const filtered = useMemo(
+  const filteredEvents = useMemo(
     () =>
-      filterEvents(events, {
+      filterEvents(allEvents, {
         searchQuery,
         selectedOutcomes,
         selectedRegions,
@@ -60,7 +44,7 @@ export default function EventsPanel({ events, mapRef }: EventsPanelProps) {
         selectedTags,
       }),
     [
-      events,
+      allEvents,
       searchQuery,
       selectedOutcomes,
       selectedRegions,
@@ -69,8 +53,8 @@ export default function EventsPanel({ events, mapRef }: EventsPanelProps) {
     ]
   );
 
-  const sorted = useMemo(() => {
-    const list = [...filtered];
+  const sortedEvents = useMemo(() => {
+    const list = [...filteredEvents];
     if (sort === "date-desc")
       list.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
     else if (sort === "date-asc")
@@ -78,7 +62,7 @@ export default function EventsPanel({ events, mapRef }: EventsPanelProps) {
     else if (sort === "country-asc")
       list.sort((a, b) => a.country.localeCompare(b.country));
     return list;
-  }, [filtered, sort]);
+  }, [filteredEvents, sort]);
 
   const handleSelect = (event: CoupEvent) => {
     const map = mapRef.current?.getMap();
@@ -101,13 +85,13 @@ export default function EventsPanel({ events, mapRef }: EventsPanelProps) {
 
   return (
     <div className="flex w-full shrink-0 flex-col border-r border-gray-800 bg-[#0f1117] md:w-[320px]">
-      {/* Drag handle: mobile only */}
+      {/* visual drag handle for mobile only (no interaction) */}
       <div className="flex flex-shrink-0 justify-center pt-2 md:hidden" aria-hidden>
         <div className="h-1 w-10 rounded-full bg-gray-600" />
       </div>
       <div className="flex min-h-[44px] items-center justify-between border-b border-gray-800 px-3 py-2.5 md:px-4 md:py-3">
         <span className="text-sm font-medium text-gray-300">
-          {sorted.length} event{sorted.length !== 1 ? "s" : ""}
+          {sortedEvents.length} event{sortedEvents.length !== 1 ? "s" : ""}
         </span>
         <div className="relative">
           <button
@@ -151,14 +135,14 @@ export default function EventsPanel({ events, mapRef }: EventsPanelProps) {
         </div>
       </div>
       <div className="panel-scroll flex-1 overflow-y-auto">
-        {sorted.length === 0 ? (
+        {sortedEvents.length === 0 ? (
           <div className="flex flex-col items-center justify-center gap-2 px-4 py-12 text-center text-sm text-gray-500">
             <p>No events match the current filters.</p>
             <p className="text-xs">Try adjusting search or filters.</p>
           </div>
         ) : (
           <ul className="divide-y divide-gray-800">
-            {sorted.map((event) => {
+            {sortedEvents.map((event) => {
               const style = OUTCOME_STYLES[event.outcome];
               return (
                 <li key={event.id}>
@@ -177,7 +161,7 @@ export default function EventsPanel({ events, mapRef }: EventsPanelProps) {
                     </div>
                     <div className="flex flex-wrap items-center gap-2">
                       <span
-                        className={`rounded-full px-2 py-0.5 text-xs ${style.bg}`}
+                        className={`rounded-full px-2 py-0.5 text-xs ${style.badgeClass}`}
                       >
                         {style.label}
                       </span>

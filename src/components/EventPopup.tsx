@@ -1,24 +1,6 @@
-import type { CoupEvent, CoupOutcome } from "../types/coup";
-
-const OUTCOME_STYLES: Record<
-  CoupOutcome,
-  { bg: string; dot: string; label: string }
-> = {
-  successful: { bg: "bg-emerald-500/20", dot: "bg-emerald-400", label: "Successful" },
-  failed: { bg: "bg-red-500/20", dot: "bg-red-400", label: "Failed" },
-  attempted: { bg: "bg-amber-500/20", dot: "bg-amber-400", label: "Attempted" },
-  plot: { bg: "bg-slate-500/20", dot: "bg-slate-400", label: "Plot" },
-  alleged: { bg: "bg-slate-500/20", dot: "bg-slate-400", label: "Alleged" },
-};
-
-function formatDate(iso: string): string {
-  const d = new Date(iso);
-  return d.toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  });
-}
+import type { CoupEvent } from "../types/coup";
+import { OUTCOME_STYLES } from "../lib/outcomeStyles";
+import { formatDate } from "../lib/date";
 
 export interface EventPopupProps {
   event: CoupEvent;
@@ -38,9 +20,9 @@ export default function EventPopup({ event }: EventPopupProps) {
       <h3 className="mt-1 text-sm font-bold text-white">{event.title}</h3>
       <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
         <span
-          className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs ${style.bg}`}
+          className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs ${style.badgeClass}`}
         >
-          <span className={`h-1.5 w-1.5 rounded-full ${style.dot}`} />
+          <span className={`h-1.5 w-1.5 rounded-full ${style.dotClass}`} />
           {style.label}
         </span>
         <span className="rounded-full bg-gray-700/50 px-2 py-0.5 text-xs text-gray-400">
