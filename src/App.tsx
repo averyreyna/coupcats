@@ -11,6 +11,7 @@ import Layout from "./components/Layout";
 import { useFilterStore } from "./store/useFilterStore";
 import { OUTCOME_COLORS } from "./lib/colors";
 import { getCoupsFeatureCollection, getAllCoupEvents } from "./lib/coupData";
+import { buildMapFilterExpression } from "./lib/filterHelpers";
 import { useMapHover } from "./hooks/useMapHover";
 import { useEscapeToClearSelection } from "./hooks/useEscapeToClearSelection";
 import { useClearSelectionOnMapClick } from "./hooks/useClearSelectionOnMapClick";
@@ -54,12 +55,34 @@ export default function App() {
 
   const selectedEvent = useFilterStore((s) => s.selectedEvent);
   const setSelectedEvent = useFilterStore((s) => s.setSelectedEvent);
+  const searchQuery = useFilterStore((s) => s.searchQuery);
+  const selectedOutcomes = useFilterStore((s) => s.selectedOutcomes);
+  const selectedRegions = useFilterStore((s) => s.selectedRegions);
+  const dateRange = useFilterStore((s) => s.dateRange);
+  const selectedTags = useFilterStore((s) => s.selectedTags);
+
+  // Build filter expression based on current filter state
+  const filterExpression = useMemo(
+    () =>
+      buildMapFilterExpression(
+        {
+          searchQuery,
+          selectedOutcomes,
+          selectedRegions,
+          dateRange,
+          selectedTags,
+        },
+        allEvents
+      ),
+    [searchQuery, selectedOutcomes, selectedRegions, dateRange, selectedTags, allEvents]
+  );
 
   const circleLayerStyle: CircleLayerSpecification = {
     id: "coup-circles",
     type: "circle",
     source: "coups",
     paint: circleLayerPaint,
+    filter: filterExpression,
   };
 
   const { onMouseEnter, onMouseLeave } = useMapHover({
