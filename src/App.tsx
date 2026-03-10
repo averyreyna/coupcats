@@ -1,4 +1,4 @@
-import { useRef, useState, useCallback, useMemo } from "react";
+import { useRef, useState, useCallback, useMemo, useEffect } from "react";
 import { Map, Source, Layer, Popup, type MapRef } from "@vis.gl/react-maplibre";
 import type {
   CircleLayerSpecification,
@@ -49,11 +49,23 @@ const circleLayerPaint: CircleLayerSpecification["paint"] = {
 export default function App() {
   const mapRef = useRef<MapRef>(null);
   const [mapLoaded, setMapLoaded] = useState(false);
+  const [countriesGeoJSON, setCountriesGeoJSON] = useState<any>(null);
 
   const allEvents = useMemo(() => getAllCoupEvents(), []);
 
+  // Load countries GeoJSON on mount
+  useEffect(() => {
+    fetch(
+      "https://raw.githubusercontent.com/datasets/geo-countries/master/data/countries.geojson"
+    )
+      .then((res) => res.json())
+      .then((data) => setCountriesGeoJSON(data))
+      .catch((err) => console.error("Failed to load countries GeoJSON:", err));
+  }, []);
+
   const selectedEvent = useFilterStore((s) => s.selectedEvent);
   const setSelectedEvent = useFilterStore((s) => s.setSelectedEvent);
+  const setSelectedCountry = useFilterStore((s) => s.setSelectedCountry);
 
   const circleLayerStyle: CircleLayerSpecification = {
     id: "coup-circles",
@@ -69,13 +81,71 @@ export default function App() {
 
   const onClick = useCallback(
     (e: MapLayerMouseEvent) => {
-      if (e.features?.length && e.features[0].properties) {
-        setSelectedEvent(e.features[0].properties as CoupEvent);
-      } else {
-        setSelectedEvent(null);
+      // Check if clicking on a coup dot
+      if (e.features?.length && e.features[0].layer?.id === "coup-circles") {
+        const event = e.features[0].properties as CoupEvent;
+        setSelectedEvent(event);
+        setSelectedCountry(event.country);
+        return;
       }
+
+      // Check if clicking on a country
+      if (countriesGeoJSON && countriesGeoJSON.features) {
+        let nearestCountry: string | null = null;
+        let minDistance = Infinity;
+
+        for (const feature of countriesGeoJSON.features) {
+          const countryName = feature.properties?.ADMIN || feature.properties?.name;
+          if (!countryName) continue;
+
+          const geometry = feature.geometry;
+          if (!geometry) continue;
+
+          let coords: any[] = [];
+
+          // Handle both Polygon and MultiPolygon
+          if (geometry.type === "Polygon" && geometry.coordinates[0]) {
+            coords = geometry.coordinates[0];
+          } else if (geometry.type === "MultiPolygon") {
+            // For MultiPolygon, use the first polygon's exterior ring
+            if (geometry.coordinates[0]?.[0]) {
+              coords = geometry.coordinates[0][0];
+            }
+          }
+
+          if (coords.length > 0) {
+            // Calculate centroid
+            const centroidLng =
+              coords.reduce((sum: number, c: any) => sum + c[0], 0) /
+              coords.length;
+            const centroidLat =
+              coords.reduce((sum: number, c: any) => sum + c[1], 0) /
+              coords.length;
+
+            const dx = centroidLng - e.lngLat.lng;
+            const dy = centroidLat - e.lngLat.lat;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+
+            if (distance < minDistance) {
+              minDistance = distance;
+              nearestCountry = countryName;
+            }
+          }
+        }
+
+        // Select if within a reasonable distance (15 degrees should be sufficient)
+        if (nearestCountry && minDistance < 15) {
+          setSelectedCountry(nearestCountry);
+          setSelectedEvent(null);
+          return;
+        }
+      }
+
+      // No country or coup clicked
+      setSelectedEvent(null);
+      setSelectedCountry(null);
     },
-    [setSelectedEvent]
+    [setSelectedEvent, setSelectedCountry, countriesGeoJSON]
   );
 
   useClearSelectionOnMapClick({
@@ -102,12 +172,24 @@ export default function App() {
             zoom: 2,
           }}
           mapStyle={MAP_STYLE}
-          interactiveLayerIds={["coup-circles"]}
+          interactiveLayerIds={["coup-circles", "countries-fill"]}
           onMouseEnter={onMouseEnter}
           onMouseLeave={onMouseLeave}
           onClick={onClick}
           onLoad={() => setMapLoaded(true)}
         >
+          {countriesGeoJSON && (
+            <Source id="countries" type="geojson" data={countriesGeoJSON}>
+              <Layer
+                id="countries-fill"
+                type="fill"
+                paint={{
+                  "fill-color": "rgba(0,0,0,0)",
+                  "fill-opacity": 0,
+                }}
+              />
+            </Source>
+          )}
           <Source
             id="coups"
             type="geojson"

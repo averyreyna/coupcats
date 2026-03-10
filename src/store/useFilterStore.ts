@@ -9,6 +9,7 @@ export interface FilterState {
   dateRange: [number, number];
   selectedTags: string[];
   selectedEvent: CoupEvent | null;
+  selectedCountry: string | null;
 
   setSearchQuery: (q: string) => void;
   toggleOutcome: (o: CoupOutcome) => void;
@@ -18,6 +19,7 @@ export interface FilterState {
   toggleTag: (t: string) => void;
   reset: () => void;
   setSelectedEvent: (event: CoupEvent | null) => void;
+  setSelectedCountry: (country: string | null) => void;
 }
 
 const INITIAL_DATE_RANGE: [number, number] = [1950, 2030];
@@ -37,6 +39,7 @@ export const useFilterStore = create<FilterState>((set) => ({
   dateRange: INITIAL_DATE_RANGE,
   selectedTags: [],
   selectedEvent: null,
+  selectedCountry: null,
 
   setSearchQuery: (q) => set({ searchQuery: q }),
   toggleOutcome: (o) =>
@@ -77,6 +80,8 @@ export const useFilterStore = create<FilterState>((set) => ({
       dateRange: INITIAL_DATE_RANGE,
       selectedTags: [],
       selectedEvent: null,
+      selectedCountry: null,
     }),
   setSelectedEvent: (event) => set({ selectedEvent: event }),
-}));
+  setSelectedCountry: (country) => set({ selectedCountry: country }),
+}))
