@@ -17,7 +17,7 @@ export default function EventPopup({ event }: EventPopupProps) {
       <div className="font-mono text-xs text-gray-500" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
         {event.id}
       </div>
-      <h3 className="mt-1 text-sm font-bold text-white">{event.title}</h3>
+      <h3 className="mt-1 text-sm font-bold text-white">{event.country}</h3>
       <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
         <span
           className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs ${style.badgeClass}`}

@@ -106,7 +106,7 @@ export default function EventsPanel({ allEvents, mapRef }: EventsPanelProps) {
             <>
               <div
                 className="fixed inset-0 z-40"
-                aria-hidden
+                aria-hiddenx
                 onClick={() => setSortOpen(false)}
               />
               <div className="absolute right-0 top-full z-50 mt-1 min-w-[140px] rounded border border-gray-700 bg-[#1a1d26] py-1 shadow-xl">
@@ -156,7 +156,7 @@ export default function EventsPanel({ allEvents, mapRef }: EventsPanelProps) {
                         {countryCodeToFlag(event.countryCode)}
                       </span>
                       <span className="truncate text-sm font-medium text-white">
-                        {event.title}
+                        {event.country}
                       </span>
                     </div>
                     <div className="flex flex-wrap items-center gap-2">

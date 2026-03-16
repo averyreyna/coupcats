@@ -7,9 +7,6 @@ import type { CoupOutcome } from "../types/coup";
 const OUTCOMES: { value: CoupOutcome; label: string }[] = [
   { value: "successful", label: "Successful" },
   { value: "failed", label: "Failed" },
-  { value: "attempted", label: "Attempted" },
-  { value: "plot", label: "Plot" },
-  { value: "alleged", label: "Alleged" },
 ];
 
 const DECADES = [1950, 1960, 1970, 1980, 1990, 2000, 2010, 2020];
