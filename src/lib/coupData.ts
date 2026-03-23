@@ -23,6 +23,8 @@ const GITHUB_URL = "https://raw.githubusercontent.com/thynec/CoupCats/refs/heads
 
 let cachedPredictions: PredictionFeatureCollection | null = null;
 
+//This creates the json file into a Geojson to match the formatting needed for the map, given we seem to need
+// a point dedicated on the map to add features onto the map this way
 function toPredictionFeatureCollection(
   predictions: CoupPrediction[]
 ): PredictionFeatureCollection{
@@ -50,6 +52,7 @@ function toPredictionFeatureCollection(
   return {type: "FeatureCollection", features};
 }
 
+//Receives the prediction data from the github, GITHUB_URL is defined above
 export async function getPredictionFeatureCollection(): Promise<PredictionFeatureCollection> {
   if(cachedPredictions) return cachedPredictions;
 
@@ -61,6 +64,7 @@ export async function getPredictionFeatureCollection(): Promise<PredictionFeatur
   return cachedPredictions;
 }
 
+//Gets all of the prediction stats, we can edit this to only receive the desired stats to better optimize this feature
 export async function getAllPredictions(): Promise<CoupPrediction[]> {
   const fc = await getPredictionFeatureCollection();
   return (fc.features ?? []).map((f) => f.properties);

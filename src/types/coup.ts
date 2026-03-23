@@ -75,7 +75,7 @@ export interface CoupPrediction{
   neighboring_coup: number;
   prediction_prob: number;
 }
-
+//Creating the type in which the json is exported as
 export type PredictionFeatureCollection = GeoJSON.FeatureCollection<
   GeoJSON.Point,
   CoupPrediction
