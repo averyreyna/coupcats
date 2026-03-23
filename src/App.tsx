@@ -1,9 +1,6 @@
 import { useRef, useState, useCallback, useMemo } from "react";
 import { Map, Source, Layer, Popup, type MapRef } from "@vis.gl/react-maplibre";
-import type {
-  CircleLayerSpecification,
-  MapLayerMouseEvent,
-} from "maplibre-gl";
+import type { CircleLayerSpecification, MapLayerMouseEvent } from "maplibre-gl";
 import type { CoupEvent } from "./types/coup";
 import EventPopup from "./components/EventPopup";
 import MapLegend from "./components/MapLegend";
@@ -52,6 +49,12 @@ export default function App() {
   const [mapLoaded, setMapLoaded] = useState(false);
 
   const allEvents = useMemo(() => getAllCoupEvents(), []);
+  const yearRange = useFilterStore((s) => s.yearRange);
+  const filteredEvents = useMemo(() => {
+    return allEvents.filter((event) => {
+      return event.year >= yearRange[0] && event.year <= yearRange[1];
+    });
+  }, [allEvents, yearRange]);
 
   const selectedEvent = useFilterStore((s) => s.selectedEvent);
   const setSelectedEvent = useFilterStore((s) => s.setSelectedEvent);
@@ -72,9 +75,16 @@ export default function App() {
           dateRange,
           selectedTags,
         },
-        allEvents
+        allEvents,
       ),
-    [searchQuery, selectedOutcomes, selectedRegions, dateRange, selectedTags, allEvents]
+    [
+      searchQuery,
+      selectedOutcomes,
+      selectedRegions,
+      dateRange,
+      selectedTags,
+      allEvents,
+    ],
   );
 
   const circleLayerStyle: CircleLayerSpecification = {
@@ -98,7 +108,7 @@ export default function App() {
         setSelectedEvent(null);
       }
     },
-    [setSelectedEvent]
+    [setSelectedEvent],
   );
 
   useClearSelectionOnMapClick({
@@ -134,7 +144,7 @@ export default function App() {
           <Source
             id="coups"
             type="geojson"
-            data={getCoupsFeatureCollection()}
+            data={getCoupsFeatureCollection(filteredEvents)}
             promoteId="id"
           >
             <Layer {...circleLayerStyle} />
