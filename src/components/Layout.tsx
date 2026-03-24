@@ -5,6 +5,8 @@ import type { NavId } from "./Sidebar";
 import Sidebar from "./Sidebar";
 import Toolbar from "./Toolbar";
 import EventsPanel from "./EventsPanel";
+import CountryPanel from "./CountryPanel";
+import { useFilterStore } from "../store/useFilterStore";
 import FiltersPanel from "./FiltersPanel";
 
 export interface LayoutProps {
@@ -15,6 +17,8 @@ export interface LayoutProps {
 
 export default function Layout({ children, mapRef, allEvents }: LayoutProps) {
   const [activeNav, setActiveNav] = useState<NavId>("home");
+  const selectedCountry = useFilterStore((s) => s.selectedCountry);
+  const setSelectedCountry = useFilterStore((s) => s.setSelectedCountry);
 
   const regions = useMemo(
     () => [...new Set(allEvents.map((event) => event.region))].sort(),
@@ -26,6 +30,11 @@ export default function Layout({ children, mapRef, allEvents }: LayoutProps) {
     [allEvents]
   );
 
+  const countryEvents = useMemo(
+    () => allEvents.filter((event) => event.country === selectedCountry),
+    [allEvents, selectedCountry]
+  );
+
   return (
     <div className="flex h-screen w-screen flex-col overflow-hidden md:flex-row">
       <Sidebar activeNav={activeNav} onNavChange={setActiveNav} />
@@ -35,6 +44,15 @@ export default function Layout({ children, mapRef, allEvents }: LayoutProps) {
           {activeNav === "events" && (
             <div className="fixed bottom-0 left-0 z-30 flex max-h-[85vh] w-full shrink-0 overflow-hidden rounded-t-xl border-t border-gray-800 bg-[#0f1117] pb-[env(safe-area-inset-bottom)] shadow-2xl transition-all duration-300 ease-out md:relative md:w-[320px] md:max-h-none md:rounded-none md:border-r md:border-t-0 md:pb-0 md:shadow-none">
               <EventsPanel allEvents={allEvents} mapRef={mapRef} />
+            </div>
+          )}
+          {selectedCountry && (
+            <div className="fixed bottom-0 right-0 z-30 flex max-h-[85vh] w-full shrink-0 overflow-hidden rounded-t-xl border-t border-gray-800 bg-[#0f1117] pb-[env(safe-area-inset-bottom)] shadow-2xl transition-all duration-300 ease-out md:relative md:w-[320px] md:max-h-none md:rounded-none md:border-l md:border-t-0 md:pb-0 md:shadow-none">
+              <CountryPanel
+                country={selectedCountry}
+                events={countryEvents}
+                onClose={() => setSelectedCountry(null)}
+              />
             </div>
           )}
           {activeNav === "filters" && (
