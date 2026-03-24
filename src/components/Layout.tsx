@@ -7,6 +7,7 @@ import Toolbar from "./Toolbar";
 import EventsPanel from "./EventsPanel";
 import CountryPanel from "./CountryPanel";
 import { useFilterStore } from "../store/useFilterStore";
+import FiltersPanel from "./FiltersPanel";
 
 export interface LayoutProps {
   children: React.ReactNode;
@@ -51,6 +52,12 @@ export default function Layout({ children, mapRef, allEvents }: LayoutProps) {
                 country={selectedCountry}
                 events={countryEvents}
                 onClose={() => setSelectedCountry(null)}
+          {activeNav === "filters" && (
+            <div className="fixed bottom-0 left-0 z-30 flex max-h-[85vh] w-full shrink-0 overflow-hidden rounded-t-xl border-t border-gray-800 bg-[#0f1117] pb-[env(safe-area-inset-bottom)] shadow-2xl transition-all duration-300 ease-out md:relative md:w-[320px] md:max-h-none md:rounded-none md:border-r md:border-t-0 md:pb-0 md:shadow-none">
+              <FiltersPanel
+                onClose={() => setActiveNav("home")}
+                regions={regions}
+                tags={tags}
               />
             </div>
           )}

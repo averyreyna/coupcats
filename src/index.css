@@ -96,3 +96,42 @@ body {
 .maplibregl-popup-anchor-right .maplibregl-popup-tip {
   border-left-color: #1a1d26;
 }
+
+.timeline-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+  pointer-events: none;
+}
+
+.timeline-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  pointer-events: auto;
+  height: 18px;
+  width: 18px;
+  border-radius: 9999px;
+  background: #f59e0b;
+  border: 2px solid #111827;
+  box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.15);
+  cursor: pointer;
+}
+
+.timeline-slider::-moz-range-thumb {
+  pointer-events: auto;
+  height: 18px;
+  width: 18px;
+  border-radius: 9999px;
+  background: #f59e0b;
+  border: 2px solid #111827;
+  box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.15);
+  cursor: pointer;
+}
+
+.timeline-slider::-webkit-slider-runnable-track {
+  background: transparent;
+}
+
+.timeline-slider::-moz-range-track {
+  background: transparent;
+}

@@ -4,9 +4,6 @@ import type { CoupOutcome } from "../types/coup";
 const OUTCOMES: CoupOutcome[] = [
   "successful",
   "failed",
-  "attempted",
-  "plot",
-  "alleged",
 ];
 
 export default function MapLegend() {

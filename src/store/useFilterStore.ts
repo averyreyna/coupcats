@@ -10,7 +10,10 @@ export interface FilterState {
   selectedTags: string[];
   selectedEvent: CoupEvent | null;
   selectedCountry: string | null;
+  yearRange: [number, number];
+  viewMode: "events" | "risk";
 
+  setYearRange: (range: [number, number]) => void;
   setSearchQuery: (q: string) => void;
   toggleOutcome: (o: CoupOutcome) => void;
   toggleRegion: (r: string) => void;
@@ -20,6 +23,7 @@ export interface FilterState {
   reset: () => void;
   setSelectedEvent: (event: CoupEvent | null) => void;
   setSelectedCountry: (country: string | null) => void;
+  setViewMode: (mode: "events" | "risk") => void;
 }
 
 const INITIAL_DATE_RANGE: [number, number] = [1950, 2030];
@@ -40,7 +44,10 @@ export const useFilterStore = create<FilterState>((set) => ({
   selectedTags: [],
   selectedEvent: null,
   selectedCountry: null,
+  yearRange: [1950, 2026],
+  viewMode: "events",
 
+  setYearRange: (range) => set({ yearRange: range }),
   setSearchQuery: (q) => set({ searchQuery: q }),
   toggleOutcome: (o) =>
     set((s) => ({
@@ -81,7 +88,9 @@ export const useFilterStore = create<FilterState>((set) => ({
       selectedTags: [],
       selectedEvent: null,
       selectedCountry: null,
+      yearRange: [1950, 2026],
     }),
+  setViewMode: (mode) => set({ viewMode: mode }),
   setSelectedEvent: (event) => set({ selectedEvent: event }),
   setSelectedCountry: (country) => set({ selectedCountry: country }),
 }))
