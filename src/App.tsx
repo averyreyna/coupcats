@@ -244,53 +244,6 @@ export default function App() {
             </div>
           </div>
         )}
-        <Map
-          ref={mapRef}
-          initialViewState={{
-            longitude: 20,
-            latitude: 15,
-            zoom: 2,
-          }}
-          mapStyle={MAP_STYLE}
-          interactiveLayerIds={["coup-circles", "countries-fill"]}
-          onMouseEnter={onMouseEnter}
-          onMouseLeave={onMouseLeave}
-          onClick={onClick}
-          onLoad={() => setMapLoaded(true)}
-        >
-          {countriesGeoJSON && (
-            <Source id="countries" type="geojson" data={countriesGeoJSON}>
-              <Layer
-                id="countries-fill"
-                type="fill"
-                paint={{
-                  "fill-color": "rgba(0,0,0,0)",
-                  "fill-opacity": 0,
-                }}
-              />
-            </Source>
-          )}
-          <Source
-            id="coups"
-            type="geojson"
-            data={getCoupsFeatureCollection()}
-            promoteId="id"
-          >
-            <Layer {...circleLayerStyle} />
-          </Source>
-          {selectedEvent && (
-            <Popup
-              longitude={selectedEvent.longitude}
-              latitude={selectedEvent.latitude}
-              onClose={() => setSelectedEvent(null)}
-              closeButton
-              closeOnClick={false}
-            >
-              <EventPopup event={selectedEvent} />
-            </Popup>
-          )}
-        </Map>
-        <MapLegend />
       </div>
     </Layout>
   );
