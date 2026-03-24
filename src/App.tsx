@@ -115,15 +115,27 @@ export default function App() {
 
   const onClick = useCallback(
     (e: MapLayerMouseEvent) => {
-      // Check if clicking on a coup dot
-      if (e.features?.length && e.features[0].layer?.id === "coup-circles") {
-        const event = e.features[0].properties as CoupEvent;
+      // Prioritize coup circles over countries
+      const coupFeature = e.features?.find(f => f.layer?.id === "coup-circles");
+      if (coupFeature) {
+        const event = coupFeature.properties as CoupEvent;
         setSelectedEvent(event);
         setSelectedCountry(event.country);
         return;
       }
 
       // Check if clicking on a country
+      const countryFeature = e.features?.find(f => f.layer?.id === "countries-fill");
+      if (countryFeature) {
+        const countryName = countryFeature.properties?.ADMIN || countryFeature.properties?.name;
+        if (countryName) {
+          setSelectedCountry(countryName);
+          setSelectedEvent(null);
+          return;
+        }
+      }
+
+      // Check if clicking on a country (fallback manual calculation)
       if (countriesGeoJSON && countriesGeoJSON.features) {
         let nearestCountry: string | null = null;
         let minDistance = Infinity;
@@ -208,7 +220,7 @@ export default function App() {
                 zoom: 2,
               }}
               mapStyle={MAP_STYLE}
-              interactiveLayerIds={["coup-circles"]}
+              interactiveLayerIds={["coup-circles", "countries-fill"]}
               onMouseEnter={onMouseEnter}
               onMouseLeave={onMouseLeave}
               onClick={onClick}
@@ -222,6 +234,18 @@ export default function App() {
               >
                 <Layer {...circleLayerStyle} />
               </Source>
+              {countriesGeoJSON && (
+                <Source id="countries" type="geojson" data={countriesGeoJSON}>
+                  <Layer
+                    id="countries-fill"
+                    type="fill"
+                    paint={{
+                      "fill-color": "rgba(0,0,0,0)",
+                      "fill-opacity": 0,
+                    }}
+                  />
+                </Source>
+              )}
               {selectedEvent && (
                 <Popup
                   longitude={selectedEvent.longitude}
