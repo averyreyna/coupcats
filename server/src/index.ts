@@ -1,5 +1,7 @@
 import express from "express";
 import cors from "cors";
+import dotenv from "dotenv";
+dotenv.config();
 
 const GITHUB_JSON_URL =
   process.env.GITHUB_JSON_URL ??
@@ -8,6 +10,7 @@ const GITHUB_JSON_URL =
 const app = express();
 const PORT = process.env.PORT ?? 3001;
 const R_API_URL = process.env.R_API_URL ?? "http://localhost:8000";
+
 
 async function fetchRiskData() {
   const r = await fetch(GITHUB_JSON_URL);
