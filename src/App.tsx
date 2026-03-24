@@ -50,6 +50,7 @@ export default function App() {
 
   const allEvents = useMemo(() => getAllCoupEvents(), []);
   const yearRange = useFilterStore((s) => s.yearRange);
+  const viewMode = useFilterStore((s) => s.viewMode);
   const filteredEvents = useMemo(() => {
     return allEvents.filter((event) => {
       return event.year >= yearRange[0] && event.year <= yearRange[1];
@@ -122,46 +123,57 @@ export default function App() {
   return (
     <Layout mapRef={mapRef} allEvents={allEvents}>
       <div className="relative h-full w-full">
-        {!mapLoaded && (
-          <div className="absolute inset-0 z-20 flex items-center justify-center bg-[#0f1117]">
-            <div className="h-8 w-8 animate-spin rounded-full border-2 border-amber-500/30 border-t-amber-500" />
+        {viewMode === "events" ? (
+          <>
+            {!mapLoaded && (
+              <div className="absolute inset-0 z-20 flex items-center justify-center bg-[#0f1117]">
+                <div className="h-8 w-8 animate-spin rounded-full border-2 border-amber-500/30 border-t-amber-500" />
+              </div>
+            )}
+            <Map
+              ref={mapRef}
+              initialViewState={{
+                longitude: 20,
+                latitude: 15,
+                zoom: 2,
+              }}
+              mapStyle={MAP_STYLE}
+              interactiveLayerIds={["coup-circles"]}
+              onMouseEnter={onMouseEnter}
+              onMouseLeave={onMouseLeave}
+              onClick={onClick}
+              onLoad={() => setMapLoaded(true)}
+            >
+              <Source
+                id="coups"
+                type="geojson"
+                data={getCoupsFeatureCollection(filteredEvents)}
+                promoteId="id"
+              >
+                <Layer {...circleLayerStyle} />
+              </Source>
+              {selectedEvent && (
+                <Popup
+                  longitude={selectedEvent.longitude}
+                  latitude={selectedEvent.latitude}
+                  onClose={() => setSelectedEvent(null)}
+                  closeButton
+                  closeOnClick={false}
+                >
+                  <EventPopup event={selectedEvent} />
+                </Popup>
+              )}
+            </Map>
+            <MapLegend />
+          </>
+        ) : (
+          <div className="flex h-full w-full items-center justify-center bg-[#0f1117]">
+            <div className="text-center">
+              <h2 className="text-2xl font-bold text-white mb-2">Coup Risk View</h2>
+              <p className="text-gray-400">Risk analysis visualization coming soon</p>
+            </div>
           </div>
         )}
-        <Map
-          ref={mapRef}
-          initialViewState={{
-            longitude: 20,
-            latitude: 15,
-            zoom: 2,
-          }}
-          mapStyle={MAP_STYLE}
-          interactiveLayerIds={["coup-circles"]}
-          onMouseEnter={onMouseEnter}
-          onMouseLeave={onMouseLeave}
-          onClick={onClick}
-          onLoad={() => setMapLoaded(true)}
-        >
-          <Source
-            id="coups"
-            type="geojson"
-            data={getCoupsFeatureCollection(filteredEvents)}
-            promoteId="id"
-          >
-            <Layer {...circleLayerStyle} />
-          </Source>
-          {selectedEvent && (
-            <Popup
-              longitude={selectedEvent.longitude}
-              latitude={selectedEvent.latitude}
-              onClose={() => setSelectedEvent(null)}
-              closeButton
-              closeOnClick={false}
-            >
-              <EventPopup event={selectedEvent} />
-            </Popup>
-          )}
-        </Map>
-        <MapLegend />
       </div>
     </Layout>
   );
