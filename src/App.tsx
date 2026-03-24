@@ -5,6 +5,7 @@ import type {
   MapLayerMouseEvent,
 } from "maplibre-gl";
 import { PredictionFeatureCollection, type CoupEvent, type CoupPrediction } from "./types/coup";
+import PredictionPanel from "./components/PredictionPanel"
 import EventPopup from "./components/EventPopup";
 import MapLegend from "./components/MapLegend";
 import Layout from "./components/Layout";
@@ -84,6 +85,7 @@ export default function App() {
   const [predictionCollection, setPredictionCollection] = useState<PredictionFeatureCollection | null>(null);
   const [allPredictions, setAllPredictions] = useState<CoupPrediction[]>([]);
   const [predictionError, setPredictionError] = useState<string | null>(null);
+  const [selectedPrediction, setSelectedPrediction] = useState<CoupPrediction | null>(null);
 
   useEffect(() => {
     getPredictionFeatureCollection()
@@ -131,6 +133,17 @@ export default function App() {
     sourceId: "coups",
   });
 
+  const onPredictionClick = useCallback(
+    (e: MapLayerMouseEvent) => {
+      if(e.features?.length && e.features[0].properties){
+        setSelectedPrediction(e.features[0].properties as CoupPrediction);
+      }else {
+        setSelectedPrediction(null);
+      }
+    },
+    [setSelectedPrediction]
+  );
+
   const onClick = useCallback(
     (e: MapLayerMouseEvent) => {
       if (e.features?.length && e.features[0].properties) {
@@ -166,10 +179,19 @@ export default function App() {
             zoom: 2,
           }}
           mapStyle={MAP_STYLE}
-          interactiveLayerIds={["coup-circles"]}
+          interactiveLayerIds={["coup-circles", "prediction-circles"]}
           onMouseEnter={onMouseEnter}
           onMouseLeave={onMouseLeave}
-          onClick={onClick}
+          onClick={(e) => {//Onclick event that creates the functionality to safely display the features of the circles added on map
+            const feature = e.features?.[0];
+            if(!feature){
+              setSelectedEvent(null);
+              setSelectedPrediction(null);
+              return;
+            }
+            if(feature.layer.id === "coup-circles") onClick(e);
+            else if(feature.layer.id === "prediction-circles") onPredictionClick(e);
+          }}
           onLoad={() => setMapLoaded(true)}
         >
           <Source
@@ -198,6 +220,10 @@ export default function App() {
             </Popup>
           )}
         </Map>
+        <PredictionPanel
+          prediction={selectedPrediction}
+          onClose={() => setSelectedPrediction(null)}
+        />
         <MapLegend />
       </div>
     </Layout>
