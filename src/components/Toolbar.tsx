@@ -27,6 +27,8 @@ export default function Toolbar({ regions, tags }: ToolbarProps) {
   const toggleRegion = useFilterStore((s) => s.toggleRegion);
   const selectedTags = useFilterStore((s) => s.selectedTags);
   const toggleTag = useFilterStore((s) => s.toggleTag);
+  const viewMode = useFilterStore((s) => s.viewMode);
+  const setViewMode = useFilterStore((s) => s.setViewMode);
 
   return (
     <div className="absolute left-0 right-0 top-0 z-10 flex flex-col gap-2 border-b border-gray-800/50 bg-[#0f1117]/80 px-3 py-3 pt-[max(0.75rem,env(safe-area-inset-top))] backdrop-blur-sm md:flex-row md:items-center md:justify-between md:gap-4 md:px-4">
@@ -43,66 +45,95 @@ export default function Toolbar({ regions, tags }: ToolbarProps) {
         </div>
       </div>
       <div className="flex min-w-0 shrink-0 items-center gap-2 overflow-x-auto pb-1 md:overflow-visible md:pb-0">
-        <FilterDropdown label="Status">
-          <div className="flex flex-col gap-0.5 px-2">
-            {OUTCOMES.map(({ value, label }) => (
-              <FilterCheckboxItem
-                key={value}
-                label={label}
-                checked={selectedOutcomes.includes(value)}
-                onChange={() => toggleOutcome(value)}
-              />
-            ))}
-          </div>
-        </FilterDropdown>
-        <FilterDropdown label="Date">
-          <div className="flex max-h-48 flex-col gap-0.5 overflow-y-auto px-2 py-1">
-            {DECADES.map((decade) => (
-              <FilterCheckboxItem
-                key={decade}
-                label={`${decade}s`}
-                checked={selectedDecades.includes(decade)}
-                onChange={() => toggleDecade(decade)}
-              />
-            ))}
-          </div>
-        </FilterDropdown>
-        <FilterDropdown label="Region">
-          <div className="flex max-h-48 flex-col gap-0.5 overflow-y-auto px-2 py-1">
-            {regions.length === 0 ? (
-              <span className="px-2 py-2 text-sm text-gray-500">
-                No regions in data
-              </span>
-            ) : (
-              regions.map((region) => (
-                <FilterCheckboxItem
-                  key={region}
-                  label={region}
-                  checked={selectedRegions.includes(region)}
-                  onChange={() => toggleRegion(region)}
-                />
-              ))
-            )}
-          </div>
-        </FilterDropdown>
-        <FilterDropdown label="Tags">
-          <div className="flex max-h-48 flex-col gap-0.5 overflow-y-auto px-2 py-1">
-            {tags.length === 0 ? (
-              <span className="px-2 py-2 text-sm text-gray-500">
-                No tags in data
-              </span>
-            ) : (
-              tags.map((tag) => (
-                <FilterCheckboxItem
-                  key={tag}
-                  label={tag}
-                  checked={selectedTags.includes(tag)}
-                  onChange={() => toggleTag(tag)}
-                />
-              ))
-            )}
-          </div>
-        </FilterDropdown>
+        {/* View Mode Toggle */}
+        <div className="flex items-center gap-1 rounded-lg border border-gray-700 bg-gray-800/50 p-1">
+          <button
+            onClick={() => setViewMode("events")}
+            className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${
+              viewMode === "events"
+                ? "bg-amber-500/20 text-amber-400 border border-amber-500/30"
+                : "text-gray-400 hover:text-gray-200"
+            }`}
+          >
+            Events
+          </button>
+          <button
+            onClick={() => setViewMode("risk")}
+            className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${
+              viewMode === "risk"
+                ? "bg-amber-500/20 text-amber-400 border border-amber-500/30"
+                : "text-gray-400 hover:text-gray-200"
+            }`}
+          >
+            Coup Risk
+          </button>
+        </div>
+
+        {/* Filters - only show event-specific ones in Events mode */}
+        {viewMode === "events" && (
+          <>
+            <FilterDropdown label="Status">
+              <div className="flex flex-col gap-0.5 px-2">
+                {OUTCOMES.map(({ value, label }) => (
+                  <FilterCheckboxItem
+                    key={value}
+                    label={label}
+                    checked={selectedOutcomes.includes(value)}
+                    onChange={() => toggleOutcome(value)}
+                  />
+                ))}
+              </div>
+            </FilterDropdown>
+            <FilterDropdown label="Date">
+              <div className="flex max-h-48 flex-col gap-0.5 overflow-y-auto px-2 py-1">
+                {DECADES.map((decade) => (
+                  <FilterCheckboxItem
+                    key={decade}
+                    label={`${decade}s`}
+                    checked={selectedDecades.includes(decade)}
+                    onChange={() => toggleDecade(decade)}
+                  />
+                ))}
+              </div>
+            </FilterDropdown>
+            <FilterDropdown label="Region">
+              <div className="flex max-h-48 flex-col gap-0.5 overflow-y-auto px-2 py-1">
+                {regions.length === 0 ? (
+                  <span className="px-2 py-2 text-sm text-gray-500">
+                    No regions in data
+                  </span>
+                ) : (
+                  regions.map((region) => (
+                    <FilterCheckboxItem
+                      key={region}
+                      label={region}
+                      checked={selectedRegions.includes(region)}
+                      onChange={() => toggleRegion(region)}
+                    />
+                  ))
+                )}
+              </div>
+            </FilterDropdown>
+            <FilterDropdown label="Tags">
+              <div className="flex max-h-48 flex-col gap-0.5 overflow-y-auto px-2 py-1">
+                {tags.length === 0 ? (
+                  <span className="px-2 py-2 text-sm text-gray-500">
+                    No tags in data
+                  </span>
+                ) : (
+                  tags.map((tag) => (
+                    <FilterCheckboxItem
+                      key={tag}
+                      label={tag}
+                      checked={selectedTags.includes(tag)}
+                      onChange={() => toggleTag(tag)}
+                    />
+                  ))
+                )}
+              </div>
+            </FilterDropdown>
+          </>
+        )}
       </div>
     </div>
   );
