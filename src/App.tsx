@@ -1,13 +1,17 @@
 import { useRef, useState, useCallback, useMemo, useEffect } from "react";
 import { Map, Source, Layer, Popup, type MapRef } from "@vis.gl/react-maplibre";
-import type { CircleLayerSpecification, MapLayerMouseEvent } from "maplibre-gl";
-import type { CoupEvent } from "./types/coup";
+import type {
+  CircleLayerSpecification,
+  MapLayerMouseEvent,
+} from "maplibre-gl";
+import { PredictionFeatureCollection, type CoupEvent, type CoupPrediction } from "./types/coup";
+import PredictionPanel from "./components/PredictionPanel"
 import EventPopup from "./components/EventPopup";
 import MapLegend from "./components/MapLegend";
 import Layout from "./components/Layout";
 import { useFilterStore } from "./store/useFilterStore";
 import { OUTCOME_COLORS } from "./lib/colors";
-import { getCoupsFeatureCollection, getAllCoupEvents } from "./lib/coupData";
+import { getCoupsFeatureCollection, getAllCoupEvents, getPredictionFeatureCollection, getAllPredictions } from "./lib/coupData";
 import { buildMapFilterExpression } from "./lib/filterHelpers";
 import { useMapHover } from "./hooks/useMapHover";
 import { useEscapeToClearSelection } from "./hooks/useEscapeToClearSelection";
@@ -44,6 +48,33 @@ const circleLayerPaint: CircleLayerSpecification["paint"] = {
   "circle-opacity": 1,
 };
 
+//The style for the prediction style
+const predictionLayerStyle: CircleLayerSpecification = {
+  id: "prediction-circles",
+  type: "circle",
+  source: "predictions",
+  paint: {
+    "circle-radius": [
+      "case",
+      ["boolean", ["feature-state", "hover"], false],
+      14,
+      10,
+    ],
+    "circle-color": [
+      "interpolate",
+      ["linear"],
+      ["get", "prediction_prob"],
+      0,    "#22c55e",   // green  — very low risk
+      0.05, "#eab308",  // yellow — moderate risk
+      0.15, "#f97316",  // orange — elevated risk
+      0.30, "#ef4444",  // red    — high risk
+    ],
+    "circle-stroke-width": 2,
+    "circle-stroke-color": "#020617",
+    "circle-opacity": 0.85,
+  },
+};
+
 export default function App() {
   const mapRef = useRef<MapRef>(null);
   const [mapLoaded, setMapLoaded] = useState(false);
@@ -66,6 +97,21 @@ export default function App() {
       .then((res) => res.json())
       .then((data) => setCountriesGeoJSON(data))
       .catch((err) => console.error("Failed to load countries GeoJSON:", err));
+  }, []);
+
+  //Additional states for the new data being pulled from the github json file
+  const [predictionCollection, setPredictionCollection] = useState<PredictionFeatureCollection | null>(null);
+  const [allPredictions, setAllPredictions] = useState<CoupPrediction[]>([]);
+  const [predictionError, setPredictionError] = useState<string | null>(null);
+  const [selectedPrediction, setSelectedPrediction] = useState<CoupPrediction | null>(null);
+
+  useEffect(() => {
+    getPredictionFeatureCollection()
+    .then((fc) => {
+      setPredictionCollection(fc);
+      setAllPredictions((fc.features ?? []).map((f) => f.properties));
+    })
+    .catch((err) => setPredictionError(err.message));
   }, []);
 
   const selectedEvent = useFilterStore((s) => s.selectedEvent);
@@ -112,6 +158,17 @@ export default function App() {
     mapRef,
     sourceId: "coups",
   });
+
+  const onPredictionClick = useCallback(
+    (e: MapLayerMouseEvent) => {
+      if(e.features?.length && e.features[0].properties){
+        setSelectedPrediction(e.features[0].properties as CoupPrediction);
+      }else {
+        setSelectedPrediction(null);
+      }
+    },
+    [setSelectedPrediction]
+  );
 
   const onClick = useCallback(
     (e: MapLayerMouseEvent) => {
@@ -268,7 +325,62 @@ export default function App() {
             </div>
           </div>
         )}
+        <Map
+          ref={mapRef}
+          initialViewState={{
+            longitude: 20,
+            latitude: 15,
+            zoom: 2,
+          }}
+          mapStyle={MAP_STYLE}
+          interactiveLayerIds={["coup-circles", "prediction-circles"]}
+          onMouseEnter={onMouseEnter}
+          onMouseLeave={onMouseLeave}
+          onClick={(e) => {//Onclick event that creates the functionality to safely display the features of the circles added on map
+            const feature = e.features?.[0];
+            if(!feature){
+              setSelectedEvent(null);
+              setSelectedPrediction(null);
+              return;
+            }
+            if(feature.layer.id === "coup-circles") onClick(e);
+            else if(feature.layer.id === "prediction-circles") onPredictionClick(e);
+          }}
+          onLoad={() => setMapLoaded(true)}
+        >
+          <Source
+              id="coups"
+              type="geojson"
+              data={getCoupsFeatureCollection()}
+              promoteId="id"
+            >
+              <Layer {...circleLayerStyle} />
+            </Source>
+
+            {predictionCollection && (
+              <Source id="predictions" type="geojson" data={predictionCollection} promoteId="id">
+                <Layer {...predictionLayerStyle} />
+              </Source>
+            )}
+          {selectedEvent && (
+            <Popup
+              longitude={selectedEvent.longitude}
+              latitude={selectedEvent.latitude}
+              onClose={() => setSelectedEvent(null)}
+              closeButton
+              closeOnClick={false}
+            >
+              <EventPopup event={selectedEvent} />
+            </Popup>
+          )}
+        </Map>
+        <PredictionPanel
+          prediction={selectedPrediction}
+          onClose={() => setSelectedPrediction(null)}
+        />
+        <MapLegend />
       </div>
     </Layout>
   );
 }
+
