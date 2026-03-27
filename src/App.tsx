@@ -259,128 +259,85 @@ export default function App() {
 
   useEscapeToClearSelection(setSelectedEvent);
 
-  return (
-    <Layout mapRef={mapRef} allEvents={allEvents}>
-      <div className="relative h-full w-full">
-        {viewMode === "events" ? (
-          <>
-            {!mapLoaded && (
-              <div className="absolute inset-0 z-20 flex items-center justify-center bg-[#0f1117]">
-                <div className="h-8 w-8 animate-spin rounded-full border-2 border-amber-500/30 border-t-amber-500" />
-              </div>
-            )}
-            <Map
-              ref={mapRef}
-              initialViewState={{
-                longitude: 20,
-                latitude: 15,
-                zoom: 2,
-              }}
-              mapStyle={MAP_STYLE}
-              interactiveLayerIds={["coup-circles", "countries-fill"]}
-              onMouseEnter={onMouseEnter}
-              onMouseLeave={onMouseLeave}
-              onClick={onClick}
-              onLoad={() => setMapLoaded(true)}
-            >
-              <Source
-                id="coups"
-                type="geojson"
-                data={getCoupsFeatureCollection(filteredEvents)}
-                promoteId="id"
-              >
-                <Layer {...circleLayerStyle} />
-              </Source>
-              {countriesGeoJSON && (
-                <Source id="countries" type="geojson" data={countriesGeoJSON}>
-                  <Layer
-                    id="countries-fill"
-                    type="fill"
-                    paint={{
-                      "fill-color": "rgba(0,0,0,0)",
-                      "fill-opacity": 0,
-                    }}
-                  />
-                </Source>
-              )}
-              {selectedEvent && (
-                <Popup
-                  longitude={selectedEvent.longitude}
-                  latitude={selectedEvent.latitude}
-                  onClose={() => setSelectedEvent(null)}
-                  closeButton
-                  closeOnClick={false}
-                >
-                  <EventPopup event={selectedEvent} />
-                </Popup>
-              )}
-            </Map>
-            <MapLegend />
-          </>
-        ) : (
-          <div className="flex h-full w-full items-center justify-center bg-[#0f1117]">
-            <div className="text-center">
-              <h2 className="text-2xl font-bold text-white mb-2">Coup Risk View</h2>
-              <p className="text-gray-400">Risk analysis visualization coming soon</p>
-            </div>
-          </div>
-        )}
-        <Map
-          ref={mapRef}
-          initialViewState={{
-            longitude: 20,
-            latitude: 15,
-            zoom: 2,
-          }}
-          mapStyle={MAP_STYLE}
-          interactiveLayerIds={["coup-circles", "prediction-circles"]}
-          onMouseEnter={onMouseEnter}
-          onMouseLeave={onMouseLeave}
-          onClick={(e) => {//Onclick event that creates the functionality to safely display the features of the circles added on map
-            const feature = e.features?.[0];
-            if(!feature){
-              setSelectedEvent(null);
-              setSelectedPrediction(null);
-              return;
-            }
-            if(feature.layer.id === "coup-circles") onClick(e);
-            else if(feature.layer.id === "prediction-circles") onPredictionClick(e);
-          }}
-          onLoad={() => setMapLoaded(true)}
+return (
+  <Layout mapRef={mapRef} allEvents={allEvents}>
+    <div className="relative h-full w-full">
+      {!mapLoaded && (
+        <div className="absolute inset-0 z-20 flex items-center justify-center bg-[#0f1117]">
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-amber-500/30 border-t-amber-500" />
+        </div>
+      )}
+
+      <Map
+        ref={mapRef}
+        initialViewState={{ longitude: 20, latitude: 15, zoom: 2 }}
+        mapStyle={MAP_STYLE}
+        interactiveLayerIds={
+          viewMode === "events"
+            ? ["coup-circles", "countries-fill"]
+            : ["coup-circles", "prediction-circles"]
+        }
+        onMouseEnter={onMouseEnter}
+        onMouseLeave={onMouseLeave}
+        onClick={(e) => {
+          const feature = e.features?.[0];
+          if (!feature) {
+            setSelectedEvent(null);
+            setSelectedPrediction(null);
+            return;
+          }
+          if (feature.layer.id === "coup-circles") onClick(e);
+          else if (feature.layer.id === "prediction-circles") onPredictionClick(e);
+        }}
+        onLoad={() => setMapLoaded(true)}
+      >
+        {/* Historical events layer — always present */}
+        <Source
+          id="coups"
+          type="geojson"
+          data={getCoupsFeatureCollection(filteredEvents)}
+          promoteId="id"
         >
-          <Source
-              id="coups"
-              type="geojson"
-              data={getCoupsFeatureCollection()}
-              promoteId="id"
-            >
-              <Layer {...circleLayerStyle} />
-            </Source>
+          <Layer {...circleLayerStyle} />
+        </Source>
 
-            {predictionCollection && (
-              <Source id="predictions" type="geojson" data={predictionCollection} promoteId="id">
-                <Layer {...predictionLayerStyle} />
-              </Source>
-            )}
-          {selectedEvent && (
-            <Popup
-              longitude={selectedEvent.longitude}
-              latitude={selectedEvent.latitude}
-              onClose={() => setSelectedEvent(null)}
-              closeButton
-              closeOnClick={false}
-            >
-              <EventPopup event={selectedEvent} />
-            </Popup>
-          )}
-        </Map>
-        <PredictionPanel
-          prediction={selectedPrediction}
-          onClose={() => setSelectedPrediction(null)}
-        />
-        <MapLegend />
-      </div>
-    </Layout>
-  );
-}
+        {/* Countries fill layer — events mode only */}
+        {viewMode === "events" && countriesGeoJSON && (
+          <Source id="countries" type="geojson" data={countriesGeoJSON}>
+            <Layer
+              id="countries-fill"
+              type="fill"
+              paint={{ "fill-color": "rgba(0,0,0,0)", "fill-opacity": 0 }}
+            />
+          </Source>
+        )}
 
+        {/* Prediction layer — predictions mode only */}
+        {viewMode !== "events" && predictionCollection && (
+          <Source id="predictions" type="geojson" data={predictionCollection} promoteId="id">
+            <Layer {...predictionLayerStyle} />
+          </Source>
+        )}
+
+        {/* Historical event popup */}
+        {selectedEvent && (
+          <Popup
+            longitude={selectedEvent.longitude}
+            latitude={selectedEvent.latitude}
+            onClose={() => setSelectedEvent(null)}
+            closeButton
+            closeOnClick={false}
+          >
+            <EventPopup event={selectedEvent} />
+          </Popup>
+        )}
+      </Map>
+
+      <PredictionPanel
+        prediction={selectedPrediction}
+        onClose={() => setSelectedPrediction(null)}
+      />
+      <MapLegend />
+    </div>
+  </Layout>
+)};
