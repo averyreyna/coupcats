@@ -4,14 +4,23 @@ import type {
   CircleLayerSpecification,
   MapLayerMouseEvent,
 } from "maplibre-gl";
-import { PredictionFeatureCollection, type CoupEvent, type CoupPrediction } from "./types/coup";
-import PredictionPanel from "./components/PredictionPanel"
+import {
+  type CoupEvent,
+  type CoupPrediction,
+  type PredictionFeatureCollection,
+} from "./types/coup";
+import PredictionPanel from "./components/PredictionPanel";
 import EventPopup from "./components/EventPopup";
 import MapLegend from "./components/MapLegend";
 import Layout from "./components/Layout";
+import TopRiskPanel from "./components/TopRiskPanel";
 import { useFilterStore } from "./store/useFilterStore";
 import { OUTCOME_COLORS } from "./lib/colors";
-import { getCoupsFeatureCollection, getAllCoupEvents, getPredictionFeatureCollection } from "./lib/coupData";
+import {
+  getCoupsFeatureCollection,
+  getAllCoupEvents,
+  getPredictionFeatureCollection,
+} from "./lib/coupData";
 import { buildMapFilterExpression } from "./lib/filterHelpers";
 import { useMapHover } from "./hooks/useMapHover";
 import { useEscapeToClearSelection } from "./hooks/useEscapeToClearSelection";
@@ -20,7 +29,6 @@ import { useClearSelectionOnMapClick } from "./hooks/useClearSelectionOnMapClick
 const MAP_STYLE =
   "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json";
 
-// maplibre expressions: radius by feature-state hover, color by outcome property
 const circleLayerPaint: CircleLayerSpecification["paint"] = {
   "circle-radius": [
     "case",
@@ -48,7 +56,6 @@ const circleLayerPaint: CircleLayerSpecification["paint"] = {
   "circle-opacity": 1,
 };
 
-//The style for the prediction style
 const predictionLayerStyle: CircleLayerSpecification = {
   id: "prediction-circles",
   type: "circle",
@@ -64,10 +71,14 @@ const predictionLayerStyle: CircleLayerSpecification = {
       "interpolate",
       ["linear"],
       ["get", "prediction_prob"],
-      0,    "#22c55e",   // green  — very low risk
-      0.05, "#eab308",  // yellow — moderate risk
-      0.15, "#f97316",  // orange — elevated risk
-      0.30, "#ef4444",  // red    — high risk
+      0,
+      "#22c55e",
+      0.05,
+      "#eab308",
+      0.15,
+      "#f97316",
+      0.3,
+      "#ef4444",
     ],
     "circle-stroke-width": 2,
     "circle-stroke-color": "#020617",
@@ -77,42 +88,22 @@ const predictionLayerStyle: CircleLayerSpecification = {
 
 export default function App() {
   const mapRef = useRef<MapRef>(null);
+
   const [mapLoaded, setMapLoaded] = useState(false);
   const [countriesGeoJSON, setCountriesGeoJSON] = useState<any>(null);
+  const [showTopRiskPanel, setShowTopRiskPanel] = useState(false);
+
+  const [predictionCollection, setPredictionCollection] =
+    useState<PredictionFeatureCollection | null>(null);
+  const [allPredictions, setAllPredictions] = useState<CoupPrediction[]>([]);
+  const [predictionError, setPredictionError] = useState<string | null>(null);
+  const [selectedPrediction, setSelectedPrediction] =
+    useState<CoupPrediction | null>(null);
 
   const allEvents = useMemo(() => getAllCoupEvents(), []);
+
   const yearRange = useFilterStore((s) => s.yearRange);
   const viewMode = useFilterStore((s) => s.viewMode);
-  const filteredEvents = useMemo(() => {
-    return allEvents.filter((event) => {
-      return event.year >= yearRange[0] && event.year <= yearRange[1];
-    });
-  }, [allEvents, yearRange]);
-
-  // Load countries GeoJSON on mount
-  useEffect(() => {
-    fetch(
-      "https://raw.githubusercontent.com/datasets/geo-countries/master/data/countries.geojson"
-    )
-      .then((res) => res.json())
-      .then((data) => setCountriesGeoJSON(data))
-      .catch((err) => console.error("Failed to load countries GeoJSON:", err));
-  }, []);
-
-  //Additional states for the new data being pulled from the github json file
-  const [predictionCollection, setPredictionCollection] = useState<PredictionFeatureCollection | null>(null);
-  const [selectedPrediction, setSelectedPrediction] = useState<CoupPrediction | null>(null);
-
-  useEffect(() => {
-    getPredictionFeatureCollection()
-    .then((fc) => {
-      setPredictionCollection(fc);
-    })
-    .catch((err) => {
-      console.error("Prediction load error:", err);
-    });
-  }, []);
-
   const selectedEvent = useFilterStore((s) => s.selectedEvent);
   const setSelectedEvent = useFilterStore((s) => s.setSelectedEvent);
   const setSelectedCountry = useFilterStore((s) => s.setSelectedCountry);
@@ -122,7 +113,63 @@ export default function App() {
   const dateRange = useFilterStore((s) => s.dateRange);
   const selectedTags = useFilterStore((s) => s.selectedTags);
 
-  // Build filter expression based on current filter state
+  const filteredEvents = useMemo(() => {
+    return allEvents.filter((event) => {
+      return event.year >= yearRange[0] && event.year <= yearRange[1];
+    });
+  }, [allEvents, yearRange]);
+
+  useEffect(() => {
+    fetch(
+      "https://raw.githubusercontent.com/datasets/geo-countries/master/data/countries.geojson"
+    )
+      .then((res) => res.json())
+      .then((data) => setCountriesGeoJSON(data))
+      .catch((err) => console.error("Failed to load countries GeoJSON:", err));
+  }, []);
+
+  useEffect(() => {
+    getPredictionFeatureCollection()
+      .then((fc) => {
+        setPredictionCollection(fc);
+        setAllPredictions((fc.features ?? []).map((f) => f.properties));
+      })
+      .catch((err) => setPredictionError(err.message));
+  }, []);
+
+  useEffect(() => {
+    if (viewMode === "events") {
+      setShowTopRiskPanel(false);
+      setSelectedPrediction(null);
+    } else {
+      setSelectedEvent(null);
+    }
+  }, [viewMode, setSelectedEvent]);
+
+  const uniqueLatestPredictions = useMemo(() => {
+    const byCountry = new globalThis.Map<string, CoupPrediction>();
+
+    for (const p of allPredictions) {
+      const existing = byCountry.get(p.country);
+
+      if (
+        !existing ||
+        p.year > existing.year ||
+        (p.year === existing.year && p.month > existing.month)
+      ) {
+        byCountry.set(p.country, p);
+      }
+    }
+
+    return Array.from(byCountry.values());
+  }, [allPredictions]);
+
+  const topCountries = useMemo(() => {
+    return [...uniqueLatestPredictions]
+      .sort((a, b) => b.prediction_prob - a.prediction_prob)
+      .slice(0, 20);
+  }, [uniqueLatestPredictions]);
+
   const filterExpression = useMemo(
     () =>
       buildMapFilterExpression(
@@ -133,7 +180,7 @@ export default function App() {
           dateRange,
           selectedTags,
         },
-        allEvents,
+        allEvents
       ),
     [
       searchQuery,
@@ -142,7 +189,7 @@ export default function App() {
       dateRange,
       selectedTags,
       allEvents,
-    ],
+    ]
   );
 
   const circleLayerStyle: CircleLayerSpecification = {
@@ -160,19 +207,22 @@ export default function App() {
 
   const onPredictionClick = useCallback(
     (e: MapLayerMouseEvent) => {
-      if(e.features?.length && e.features[0].properties){
-        setSelectedPrediction(e.features[0].properties as CoupPrediction);
-      }else {
-        setSelectedPrediction(null);
-      }
-    },
-    [setSelectedPrediction]
-  );
+    const predictionFeature = e.features?.find(
+      (f) => f.layer?.id === "prediction-circles"
+    );
+
+    if (predictionFeature?.properties) {
+      setSelectedPrediction(predictionFeature.properties as CoupPrediction);
+    } else {
+      setSelectedPrediction(null);
+    }
+  }, 
+  []
+);
 
   const onClick = useCallback(
     (e: MapLayerMouseEvent) => {
-      // Prioritize coup circles over countries
-      const coupFeature = e.features?.find(f => f.layer?.id === "coup-circles");
+      const coupFeature = e.features?.find((f) => f.layer?.id === "coup-circles");
       if (coupFeature) {
         const event = coupFeature.properties as CoupEvent;
         setSelectedEvent(event);
@@ -180,10 +230,12 @@ export default function App() {
         return;
       }
 
-      // Check if clicking on a country
-      const countryFeature = e.features?.find(f => f.layer?.id === "countries-fill");
+      const countryFeature = e.features?.find(
+        (f) => f.layer?.id === "countries-fill"
+      );
       if (countryFeature) {
-        const countryName = countryFeature.properties?.ADMIN || countryFeature.properties?.name;
+        const countryName =
+          countryFeature.properties?.ADMIN || countryFeature.properties?.name;
         if (countryName) {
           setSelectedCountry(countryName);
           setSelectedEvent(null);
@@ -191,7 +243,6 @@ export default function App() {
         }
       }
 
-      // Check if clicking on a country (fallback manual calculation)
       if (countriesGeoJSON && countriesGeoJSON.features) {
         let nearestCountry: string | null = null;
         let minDistance = Infinity;
@@ -205,24 +256,19 @@ export default function App() {
 
           let coords: any[] = [];
 
-          // Handle both Polygon and MultiPolygon
           if (geometry.type === "Polygon" && geometry.coordinates[0]) {
             coords = geometry.coordinates[0];
           } else if (geometry.type === "MultiPolygon") {
-            // For MultiPolygon, use the first polygon's exterior ring
             if (geometry.coordinates[0]?.[0]) {
               coords = geometry.coordinates[0][0];
             }
           }
 
           if (coords.length > 0) {
-            // Calculate centroid
             const centroidLng =
-              coords.reduce((sum: number, c: any) => sum + c[0], 0) /
-              coords.length;
+              coords.reduce((sum: number, c: any) => sum + c[0], 0) / coords.length;
             const centroidLat =
-              coords.reduce((sum: number, c: any) => sum + c[1], 0) /
-              coords.length;
+              coords.reduce((sum: number, c: any) => sum + c[1], 0) / coords.length;
 
             const dx = centroidLng - e.lngLat.lng;
             const dy = centroidLat - e.lngLat.lat;
@@ -235,7 +281,6 @@ export default function App() {
           }
         }
 
-        // Select if within a reasonable distance (15 degrees should be sufficient)
         if (nearestCountry && minDistance < 15) {
           setSelectedCountry(nearestCountry);
           setSelectedEvent(null);
@@ -243,7 +288,6 @@ export default function App() {
         }
       }
 
-      // No country or coup clicked
       setSelectedEvent(null);
       setSelectedCountry(null);
     },
@@ -258,95 +302,112 @@ export default function App() {
 
   useEscapeToClearSelection(setSelectedEvent);
 
-  useEffect(() => {
-    if (viewMode === "risk") {
-      setSelectedEvent(null);
-    } else {
-      setSelectedPrediction(null);
-    }
-  }, [viewMode, setSelectedEvent, setSelectedPrediction]);
-
   return (
-  <Layout mapRef={mapRef} allEvents={allEvents}>
-    <div className="relative h-full w-full">
-      {!mapLoaded && (
-        <div className="absolute inset-0 z-20 flex items-center justify-center bg-[#0f1117]">
-          <div className="h-8 w-8 animate-spin rounded-full border-2 border-amber-500/30 border-t-amber-500" />
-        </div>
-      )}
+    <Layout mapRef={mapRef} allEvents={allEvents}>
+      <div className="relative h-full w-full">
+        {!mapLoaded && (
+          <div className="absolute inset-0 z-20 flex items-center justify-center bg-[#0f1117]">
+            <div className="h-8 w-8 animate-spin rounded-full border-2 border-amber-500/30 border-t-amber-500" />
+          </div>
+        )}
 
-      <Map
-        ref={mapRef}
-        initialViewState={{ longitude: 20, latitude: 15, zoom: 2 }}
-        mapStyle={MAP_STYLE}
-        interactiveLayerIds={
-          viewMode === "events"
-            ? ["coup-circles", "countries-fill"]
-            : ["prediction-circles"]
-        }
-        onMouseEnter={onMouseEnter}
-        onMouseLeave={onMouseLeave}
-        onClick={(e) => {
-          const feature = e.features?.[0];
-          if (!feature) {
-            setSelectedEvent(null);
-            setSelectedPrediction(null);
-            return;
+        <Map
+          ref={mapRef}
+          initialViewState={{ longitude: 20, latitude: 15, zoom: 2 }}
+          mapStyle={MAP_STYLE}
+          interactiveLayerIds={
+            viewMode === "events"
+              ? ["coup-circles", "countries-fill"]
+              : ["prediction-circles"]
           }
-          if (feature.layer.id === "coup-circles") onClick(e);
-          else if (feature.layer.id === "prediction-circles") onPredictionClick(e);
-        }}
-        onLoad={() => setMapLoaded(true)}
-      >
-        {/* Historical events layer — events mode only */}
-        {viewMode === "events" && (
-          <Source
-            id="coups"
-            type="geojson"
-            data={getCoupsFeatureCollection(filteredEvents)}
-            promoteId="id"
-          >
-            <Layer {...circleLayerStyle} />
-          </Source>
-        )}
+          onMouseEnter={onMouseEnter}
+          onMouseLeave={onMouseLeave}
+          onClick={(e) => {
+            if (viewMode === "events") {
+              onClick(e);
+            } else {
+              onPredictionClick(e);
+            }
+          }}
+          onLoad={() => setMapLoaded(true)}
+        >
+          {viewMode === "events" && (
+            <Source
+              id="coups"
+              type="geojson"
+              data={getCoupsFeatureCollection(filteredEvents)}
+              promoteId="id"
+            >
+              <Layer {...circleLayerStyle} />
+            </Source>
+          )}
 
-        {/* Countries fill layer — events mode only */}
-        {viewMode === "events" && countriesGeoJSON && (
-          <Source id="countries" type="geojson" data={countriesGeoJSON}>
-            <Layer
-              id="countries-fill"
-              type="fill"
-              paint={{ "fill-color": "rgba(0,0,0,0)", "fill-opacity": 0 }}
+          {viewMode === "events" && countriesGeoJSON && (
+            <Source id="countries" type="geojson" data={countriesGeoJSON}>
+              <Layer
+                id="countries-fill"
+                type="fill"
+                paint={{ "fill-color": "rgba(0,0,0,0)", "fill-opacity": 0 }}
+              />
+            </Source>
+          )}
+
+          {viewMode !== "events" && predictionCollection && (
+            <Source
+              id="predictions"
+              type="geojson"
+              data={predictionCollection}
+              promoteId="id"
+            >
+              <Layer {...predictionLayerStyle} />
+            </Source>
+          )}
+
+          {viewMode === "events" && selectedEvent && (
+            <Popup
+              longitude={selectedEvent.longitude}
+              latitude={selectedEvent.latitude}
+              onClose={() => setSelectedEvent(null)}
+              closeButton
+              closeOnClick={false}
+            >
+              <EventPopup event={selectedEvent} />
+            </Popup>
+          )}
+        </Map>
+
+        {viewMode !== "events" && (
+          <>
+            <button
+              onClick={() => setShowTopRiskPanel((prev) => !prev)}
+              className="absolute left-4 top-20 z-20 rounded-lg border border-gray-700 bg-[#131a2a] px-4 py-2 text-sm font-medium text-white shadow-lg hover:border-amber-500"
+            >
+              {showTopRiskPanel ? "Hide Top Risk" : "Show Top Risk"}
+            </button>
+
+            {showTopRiskPanel && (
+              <TopRiskPanel
+                countries={topCountries}
+                onSelect={(c) => setSelectedPrediction(c)}
+                selectedCountry={selectedPrediction?.country ?? null}
+              />
+            )}
+
+            <PredictionPanel
+              prediction={selectedPrediction}
+              onClose={() => setSelectedPrediction(null)}
             />
-          </Source>
+          </>
         )}
 
-        {/* Prediction layer — predictions mode only */}
-        {viewMode !== "events" && predictionCollection && (
-          <Source id="predictions" type="geojson" data={predictionCollection} promoteId="id">
-            <Layer {...predictionLayerStyle} />
-          </Source>
-        )}
+        {viewMode === "events" && <MapLegend />}
 
-        {/* Historical event popup */}
-        {viewMode === "events" && selectedEvent && (
-          <Popup
-            longitude={selectedEvent.longitude}
-            latitude={selectedEvent.latitude}
-            onClose={() => setSelectedEvent(null)}
-            closeButton
-            closeOnClick={false}
-          >
-            <EventPopup event={selectedEvent} />
-          </Popup>
+        {predictionError && viewMode !== "events" && (
+          <div className="absolute bottom-4 left-4 z-20 rounded-lg border border-red-800 bg-red-950/80 px-4 py-2 text-sm text-red-200">
+            Failed to load prediction data: {predictionError}
+          </div>
         )}
-      </Map>
-
-      <PredictionPanel
-        prediction={selectedPrediction}
-        onClose={() => setSelectedPrediction(null)}
-      />
-      <MapLegend />
-    </div>
-  </Layout>
-)};
+      </div>
+    </Layout>
+  );
+}
