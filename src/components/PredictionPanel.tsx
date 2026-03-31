@@ -70,11 +70,12 @@ export default function PredictionPanel({ prediction, onClose }: Props) {
   if (!prediction) return null;
 
   const prob = prediction.prediction_prob;
-  const riskLabel =
+  const hasProb = prob != null && !isNaN(prob);
+  const riskLabel = !hasProb ? "No Prediction Available" :
     prob < 0.05 ? "Very Low" :
     prob < 0.15 ? "Moderate" :
     prob < 0.30 ? "Elevated" : "High";
-  const riskColor =
+  const riskColor = !hasProb ? "text-gray-400" :
     prob < 0.05 ? "text-green-400" :
     prob < 0.15 ? "text-yellow-400" :
     prob < 0.30 ? "text-orange-400" : "text-red-400";
@@ -88,7 +89,7 @@ export default function PredictionPanel({ prediction, onClose }: Props) {
 //The returned stats line is massive and can easily be changes when we remove more prediction stats to narrow it down to the most important 
 // ones for the project
   return (
-    <div className="absolute right-0 top-0 h-full w-80 bg-[#0f1117] border-l border-gray-800 z-10 flex flex-col shadow-2xl">
+    <div className="absolute right-0 top-0 h-[72vh] max-h-[680px] w-80 bg-[#0f1117] border-l border-gray-800 z-10 flex flex-col shadow-2xl">
 
       {/* Header */}
       <div className="flex items-start justify-between p-4 border-b border-gray-800">
@@ -111,21 +112,25 @@ export default function PredictionPanel({ prediction, onClose }: Props) {
         <div className="flex justify-between items-center mb-1">
           <span className="text-gray-400 text-sm">Coup Probability</span>
           <span className={`font-bold text-lg ${riskColor}`}>
-            {(prob * 100).toFixed(4)}%
+            {hasProb ? `${(prob * 100).toFixed(4)}%` : "N/A"}
           </span>
         </div>
-        <div className="w-full bg-gray-700 rounded-full h-2">
-          <div
-            className={`h-2 rounded-full transition-all ${
-              prob < 0.05 ? "bg-green-500" :
-              prob < 0.15 ? "bg-yellow-500" :
-              prob < 0.30 ? "bg-orange-500" : "bg-red-500"
-            }`}
-            style={{ width: `${Math.min(prob / 0.3, 1) * 100}%` }}
-          />
-        </div>
+        {hasProb ? (
+          <div className="w-full bg-gray-700 rounded-full h-2">
+            <div
+              className={`h-2 rounded-full transition-all ${
+                prob < 0.05 ? "bg-green-500" :
+                prob < 0.15 ? "bg-yellow-500" :
+                prob < 0.30 ? "bg-orange-500" : "bg-red-500"
+              }`}
+              style={{ width: `${Math.min(prob / 0.3, 1) * 100}%` }}
+            />
+          </div>
+        ) : (
+          <div className="w-full bg-gray-700 rounded-full h-2" />
+        )}
         <p className={`text-xs mt-1 font-medium ${riskColor}`}>
-          {riskLabel} Risk
+          {hasProb ? `${riskLabel} Risk` : riskLabel}
         </p>
       </div>
 
