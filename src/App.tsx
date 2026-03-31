@@ -141,8 +141,10 @@ export default function App() {
     if (viewMode === "events") {
       setShowTopRiskPanel(false);
       setSelectedPrediction(null);
+    } else {
+      setSelectedEvent(null);
     }
-  }, [viewMode]);
+  }, [viewMode, setSelectedEvent]);
 
   const uniqueLatestPredictions = useMemo(() => {
     const byCountry = new globalThis.Map<string, CoupPrediction>();
@@ -205,18 +207,18 @@ export default function App() {
 
   const onPredictionClick = useCallback(
     (e: MapLayerMouseEvent) => {
-      const predictionFeature = e.features?.find(
-        (f) => f.layer?.id === "prediction-circles"
-      );
+    const predictionFeature = e.features?.find(
+      (f) => f.layer?.id === "prediction-circles"
+    );
 
-      if (predictionFeature?.properties) {
-        setSelectedPrediction(predictionFeature.properties as CoupPrediction);
-      } else {
-        setSelectedPrediction(null);
-      }
-    },
-    []
-  );
+    if (predictionFeature?.properties) {
+      setSelectedPrediction(predictionFeature.properties as CoupPrediction);
+    } else {
+      setSelectedPrediction(null);
+    }
+  }, 
+  []
+);
 
   const onClick = useCallback(
     (e: MapLayerMouseEvent) => {
