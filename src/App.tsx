@@ -11,7 +11,7 @@ import MapLegend from "./components/MapLegend";
 import Layout from "./components/Layout";
 import { useFilterStore } from "./store/useFilterStore";
 import { OUTCOME_COLORS } from "./lib/colors";
-import { getCoupsFeatureCollection, getAllCoupEvents, getPredictionFeatureCollection, getAllPredictions } from "./lib/coupData";
+import { getCoupsFeatureCollection, getAllCoupEvents, getPredictionFeatureCollection } from "./lib/coupData";
 import { buildMapFilterExpression } from "./lib/filterHelpers";
 import { useMapHover } from "./hooks/useMapHover";
 import { useEscapeToClearSelection } from "./hooks/useEscapeToClearSelection";
@@ -101,17 +101,16 @@ export default function App() {
 
   //Additional states for the new data being pulled from the github json file
   const [predictionCollection, setPredictionCollection] = useState<PredictionFeatureCollection | null>(null);
-  const [allPredictions, setAllPredictions] = useState<CoupPrediction[]>([]);
-  const [predictionError, setPredictionError] = useState<string | null>(null);
   const [selectedPrediction, setSelectedPrediction] = useState<CoupPrediction | null>(null);
 
   useEffect(() => {
     getPredictionFeatureCollection()
     .then((fc) => {
       setPredictionCollection(fc);
-      setAllPredictions((fc.features ?? []).map((f) => f.properties));
     })
-    .catch((err) => setPredictionError(err.message));
+    .catch((err) => {
+      console.error("Prediction load error:", err);
+    });
   }, []);
 
   const selectedEvent = useFilterStore((s) => s.selectedEvent);
@@ -259,7 +258,15 @@ export default function App() {
 
   useEscapeToClearSelection(setSelectedEvent);
 
-return (
+  useEffect(() => {
+    if (viewMode === "risk") {
+      setSelectedEvent(null);
+    } else {
+      setSelectedPrediction(null);
+    }
+  }, [viewMode, setSelectedEvent, setSelectedPrediction]);
+
+  return (
   <Layout mapRef={mapRef} allEvents={allEvents}>
     <div className="relative h-full w-full">
       {!mapLoaded && (
@@ -275,7 +282,7 @@ return (
         interactiveLayerIds={
           viewMode === "events"
             ? ["coup-circles", "countries-fill"]
-            : ["coup-circles", "prediction-circles"]
+            : ["prediction-circles"]
         }
         onMouseEnter={onMouseEnter}
         onMouseLeave={onMouseLeave}
@@ -291,15 +298,17 @@ return (
         }}
         onLoad={() => setMapLoaded(true)}
       >
-        {/* Historical events layer — always present */}
-        <Source
-          id="coups"
-          type="geojson"
-          data={getCoupsFeatureCollection(filteredEvents)}
-          promoteId="id"
-        >
-          <Layer {...circleLayerStyle} />
-        </Source>
+        {/* Historical events layer — events mode only */}
+        {viewMode === "events" && (
+          <Source
+            id="coups"
+            type="geojson"
+            data={getCoupsFeatureCollection(filteredEvents)}
+            promoteId="id"
+          >
+            <Layer {...circleLayerStyle} />
+          </Source>
+        )}
 
         {/* Countries fill layer — events mode only */}
         {viewMode === "events" && countriesGeoJSON && (
@@ -320,7 +329,7 @@ return (
         )}
 
         {/* Historical event popup */}
-        {selectedEvent && (
+        {viewMode === "events" && selectedEvent && (
           <Popup
             longitude={selectedEvent.longitude}
             latitude={selectedEvent.latitude}
