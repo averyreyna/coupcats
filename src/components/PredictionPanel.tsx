@@ -33,12 +33,12 @@ function StatBar({ value, invert = false }: { value: number; invert?: boolean })
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div className="mb-5">
-      <h3 className="text-xs font-semibold uppercase tracking-widest text-amber-500 mb-3">
+    <details className="mb-5">
+      <summary className="text-xs font-semibold uppercase tracking-widest text-amber-500 mb-3">
         {title}
-      </h3>
+      </summary>
       <div className="space-y-3">{children}</div>
-    </div>
+    </details>
   );
 }
 
@@ -164,11 +164,14 @@ export default function PredictionPanel({ prediction, onClose }: Props) {
                 value={safeNum(prediction.Leader_age) / 100}
                 display={prediction.Leader_age != null ? `${prediction.Leader_age} years` : "N/A"}
             />
-            <StatRow
-                label="Leader Duration"
-                value={safeNum(prediction.Leader_duration) / 30}
-                display={prediction.Leader_duration != null ? `${prediction.Leader_duration} years` : "N/A"}
-            />
+            <span title="Leader duration can be entire groups of people" className="underline decoration-dotted cursor-help">
+              <StatRow
+                  label="Leader Duration"
+                  value={safeNum(prediction.Leader_duration) / 30}
+                  display={prediction.Leader_duration != null ? `${prediction.Leader_duration} years` : "N/A"}
+              />
+            </span>
+
             </Section>
 
             <Section title="Economy">
