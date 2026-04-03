@@ -1,11 +1,8 @@
 import { useRef, useState, useCallback, useMemo, useEffect } from "react";
 import { Map, Source, Layer, Popup, type MapRef } from "@vis.gl/react-maplibre";
-import type {
-  CircleLayerSpecification,
-  MapLayerMouseEvent,
-} from "maplibre-gl";
+import type { CircleLayerSpecification, MapLayerMouseEvent } from "maplibre-gl";
 import { type CoupEvent, type CoupPrediction } from "./types/coup";
-import PredictionPanel from "./components/PredictionPanel"
+import PredictionPanel from "./components/PredictionPanel";
 import EventPopup from "./components/EventPopup";
 import MapLegend from "./components/MapLegend";
 import RiskMapLegend from "./components/RiskMapLegend";
@@ -14,7 +11,11 @@ import { useFilterStore } from "./store/useFilterStore";
 import { OUTCOME_COLORS } from "./lib/colors";
 import { buildChoroplethFillColor } from "./lib/riskColors";
 import { cowNameToGeoJsonAdmin } from "./lib/countryNameMapping";
-import { getCoupsFeatureCollection, getAllCoupEvents, getPredictionFeatureCollection } from "./lib/coupData";
+import {
+  getCoupsFeatureCollection,
+  getAllCoupEvents,
+  getPredictionFeatureCollection,
+} from "./lib/coupData";
 import { buildMapFilterExpression } from "./lib/filterHelpers";
 import { useMapHover } from "./hooks/useMapHover";
 import { useEscapeToClearSelection } from "./hooks/useEscapeToClearSelection";
@@ -68,7 +69,7 @@ export default function App() {
   // Load countries GeoJSON on mount
   useEffect(() => {
     fetch(
-      "https://raw.githubusercontent.com/datasets/geo-countries/master/data/countries.geojson"
+      "https://raw.githubusercontent.com/datasets/geo-countries/master/data/countries.geojson",
     )
       .then((res) => res.json())
       .then((data) => setCountriesGeoJSON(data))
@@ -77,14 +78,15 @@ export default function App() {
 
   //Additional states for the new data being pulled from the github json file
   const [allPredictions, setAllPredictions] = useState<CoupPrediction[]>([]);
-  const [selectedPrediction, setSelectedPrediction] = useState<CoupPrediction | null>(null);
+  const [selectedPrediction, setSelectedPrediction] =
+    useState<CoupPrediction | null>(null);
 
   useEffect(() => {
     getPredictionFeatureCollection()
-    .then((fc) => {
-      setAllPredictions((fc.features ?? []).map((f) => f.properties));
-    })
-    .catch((err) => console.error("Prediction load error:", err));
+      .then((fc) => {
+        setAllPredictions((fc.features ?? []).map((f) => f.properties));
+      })
+      .catch((err) => console.error("Prediction load error:", err));
   }, []);
 
   // Build choropleth fill-color expression for risk mode
@@ -142,34 +144,39 @@ export default function App() {
   // because mouseenter is layer-level — it doesn't fire between adjacent polygons.
   const hoveredCountryId = useRef<string | number | null>(null);
 
-  const onMouseMove = useCallback((e: MapLayerMouseEvent) => {
-    const map = mapRef.current?.getMap();
-    if (!map) return;
+  const onMouseMove = useCallback(
+    (e: MapLayerMouseEvent) => {
+      const map = mapRef.current?.getMap();
+      if (!map) return;
 
-    const countryFeature = e.features?.find((f) => f.layer?.id === "countries-fill");
-    const newId = countryFeature?.id ?? null;
-
-    if (newId === hoveredCountryId.current) return;
-
-    // Clear old hover
-    if (hoveredCountryId.current != null) {
-      map.setFeatureState(
-        { source: "countries", id: hoveredCountryId.current },
-        { hover: false },
+      const countryFeature = e.features?.find(
+        (f) => f.layer?.id === "countries-fill",
       );
-    }
+      const newId = countryFeature?.id ?? null;
 
-    // Set new hover
-    if (newId != null) {
-      map.setFeatureState(
-        { source: "countries", id: newId },
-        { hover: true },
-      );
-      map.getCanvas().style.cursor = "pointer";
-    }
+      if (newId === hoveredCountryId.current) return;
 
-    hoveredCountryId.current = newId;
-  }, [mapRef]);
+      // Clear old hover
+      if (hoveredCountryId.current != null) {
+        map.setFeatureState(
+          { source: "countries", id: hoveredCountryId.current },
+          { hover: false },
+        );
+      }
+
+      // Set new hover
+      if (newId != null) {
+        map.setFeatureState(
+          { source: "countries", id: newId },
+          { hover: true },
+        );
+        map.getCanvas().style.cursor = "pointer";
+      }
+
+      hoveredCountryId.current = newId;
+    },
+    [mapRef],
+  );
 
   const onMapMouseLeave = useCallback(() => {
     const map = mapRef.current?.getMap();
@@ -186,7 +193,9 @@ export default function App() {
   const onClick = useCallback(
     (e: MapLayerMouseEvent) => {
       // Prioritize coup circles over countries
-      const coupFeature = e.features?.find(f => f.layer?.id === "coup-circles");
+      const coupFeature = e.features?.find(
+        (f) => f.layer?.id === "coup-circles",
+      );
       if (coupFeature) {
         const event = coupFeature.properties as CoupEvent;
         setSelectedEvent(event);
@@ -195,9 +204,12 @@ export default function App() {
       }
 
       // Check if clicking on a country
-      const countryFeature = e.features?.find(f => f.layer?.id === "countries-fill");
+      const countryFeature = e.features?.find(
+        (f) => f.layer?.id === "countries-fill",
+      );
       if (countryFeature) {
-        const countryName = countryFeature.properties?.ADMIN || countryFeature.properties?.name;
+        const countryName =
+          countryFeature.properties?.ADMIN || countryFeature.properties?.name;
         if (countryName) {
           setSelectedCountry(countryName);
           setSelectedEvent(null);
@@ -211,7 +223,8 @@ export default function App() {
         let minDistance = Infinity;
 
         for (const feature of countriesGeoJSON.features) {
-          const countryName = feature.properties?.ADMIN || feature.properties?.name;
+          const countryName =
+            feature.properties?.ADMIN || feature.properties?.name;
           if (!countryName) continue;
 
           const geometry = feature.geometry;
@@ -261,7 +274,7 @@ export default function App() {
       setSelectedEvent(null);
       setSelectedCountry(null);
     },
-    [setSelectedEvent, setSelectedCountry, countriesGeoJSON]
+    [setSelectedEvent, setSelectedCountry, countriesGeoJSON],
   );
 
   useClearSelectionOnMapClick({
@@ -282,115 +295,137 @@ export default function App() {
   }, [viewMode, setSelectedEvent, setSelectedPrediction]);
 
   return (
-  <Layout mapRef={mapRef} allEvents={allEvents}>
-    <div className="relative h-full w-full">
-      {!mapLoaded && (
-        <div className="absolute inset-0 z-20 flex items-center justify-center bg-[#0f1117]">
-          <div className="h-8 w-8 animate-spin rounded-full border-2 border-amber-500/30 border-t-amber-500" />
-        </div>
-      )}
+    <Layout mapRef={mapRef} allEvents={allEvents}>
+      <div className="relative h-full w-full">
+        {!mapLoaded && (
+          <div className="absolute inset-0 z-20 flex items-center justify-center bg-[#0f1117]">
+            <div className="h-8 w-8 animate-spin rounded-full border-2 border-amber-500/30 border-t-amber-500" />
+          </div>
+        )}
 
-      <Map
-        ref={mapRef}
-        initialViewState={{ longitude: 20, latitude: 15, zoom: 2 }}
-        mapStyle={MAP_STYLE}
-        interactiveLayerIds={
-          viewMode === "events"
-            ? ["coup-circles", "countries-fill"]
-            : ["countries-fill"]
-        }
-        onMouseEnter={onMouseEnter}
-        onMouseMove={onMouseMove}
-        onMouseLeave={onMapMouseLeave}
-        onClick={(e) => {
-          const feature = e.features?.[0];
-          if (!feature) {
-            setSelectedEvent(null);
-            setSelectedPrediction(null);
-            return;
+        <Map
+          ref={mapRef}
+          initialViewState={{ longitude: 20, latitude: 15, zoom: 2 }}
+          mapStyle={MAP_STYLE}
+          interactiveLayerIds={
+            viewMode === "events"
+              ? ["coup-circles", "countries-fill"]
+              : ["countries-fill"]
           }
-          if (feature.layer.id === "coup-circles") onClick(e);
-          else if (feature.layer.id === "countries-fill" && viewMode === "risk") {
-            const geoName = feature.properties?.name;
-            if (geoName) {
-              const pred = allPredictions.find(
-                (p) => p.country === geoName || cowNameToGeoJsonAdmin(p.country) === geoName
-              );
-              if (pred) setSelectedPrediction(pred);
+          onMouseEnter={onMouseEnter}
+          onMouseMove={onMouseMove}
+          onMouseLeave={onMapMouseLeave}
+          onClick={(e) => {
+            if (viewMode === "events") {
+              onClick(e);
+              return;
             }
-          }
-        }}
-        onLoad={() => setMapLoaded(true)}
-      >
-        {/* Countries layer — always present, choropleth fill in risk mode */}
-        {countriesGeoJSON && (
-          <Source id="countries" type="geojson" data={countriesGeoJSON} promoteId="name">
-            <Layer
-              id="countries-fill"
-              type="fill"
-              paint={{
-                "fill-color":
-                  viewMode === "risk" && choroplethFillColor
-                    ? (choroplethFillColor as any)
-                    : "rgba(0,0,0,0)",
-                "fill-opacity": viewMode === "risk" ? 0.85 : 0,
-              }}
-            />
-            <Layer
-              id="countries-outline"
-              type="line"
-              paint={{
-                "line-color": "#334155",
-                "line-width": 0.5,
-              }}
-            />
-            <Layer
-              id="countries-hover-outline"
-              type="line"
-              paint={{
-                "line-color": "#e2e8f0",
-                "line-width": [
-                  "case",
-                  ["boolean", ["feature-state", "hover"], false],
-                  2,
-                  0,
-                ] as any,
-              }}
-            />
-          </Source>
-        )}
 
-        {/* Historical events layer — events mode only */}
-        {viewMode === "events" && (
-          <Source
-            id="coups"
-            type="geojson"
-            data={getCoupsFeatureCollection(filteredEvents)}
-            promoteId="id"
-          >
-            <Layer {...circleLayerStyle} />
-          </Source>
-        )}
+            const feature = e.features?.[0];
+            if (!feature) {
+              setSelectedEvent(null);
+              setSelectedPrediction(null);
+              return;
+            }
 
-        {/* Historical event popup */}
-        {viewMode === "events" && selectedEvent && (
-          <Popup
-            longitude={selectedEvent.longitude}
-            latitude={selectedEvent.latitude}
-            onClose={() => setSelectedEvent(null)}
-            closeButton
-            closeOnClick={false}
-          >
-            <EventPopup event={selectedEvent} />
-          </Popup>
-        )}
-      </Map>
+            if (feature.layer.id === "countries-fill") {
+              const geoName = feature.properties?.name;
+              if (geoName) {
+                const pred = allPredictions.find(
+                  (p) =>
+                    p.country === geoName ||
+                    cowNameToGeoJsonAdmin(p.country) === geoName,
+                );
+                if (pred) setSelectedPrediction(pred);
+              }
+            }
+          }}
+          onLoad={() => setMapLoaded(true)}
+        >
+          {/* Countries layer — always present, choropleth fill in risk mode */}
+          {countriesGeoJSON && (
+            <Source
+              id="countries"
+              type="geojson"
+              data={countriesGeoJSON}
+              promoteId="name"
+            >
+              <Layer
+                id="countries-fill"
+                type="fill"
+                paint={{
+                  "fill-color":
+                    viewMode === "risk" && choroplethFillColor
+                      ? (choroplethFillColor as any)
+                      : "rgba(0,0,0,0)",
+                  "fill-opacity": viewMode === "risk" ? 0.85 : 0,
+                }}
+              />
+              <Layer
+                id="countries-outline"
+                type="line"
+                paint={{
+                  "line-color": "#334155",
+                  "line-width": 0.5,
+                }}
+              />
+              <Layer
+                id="countries-hover-outline"
+                type="line"
+                paint={{
+                  "line-color": "#e2e8f0",
+                  "line-width": [
+                    "case",
+                    ["boolean", ["feature-state", "hover"], false],
+                    2,
+                    0,
+                  ] as any,
+                }}
+              />
+            </Source>
+          )}
 
-      <PredictionPanel
-        prediction={selectedPrediction}
-        onClose={() => setSelectedPrediction(null)}
-      />
-      {viewMode === "events" ? <MapLegend /> : <RiskMapLegend />}
-    </div>
-  </Layout>
-)};
+          {/* Historical events layer — events mode only */}
+          {viewMode === "events" && (
+            <Source
+              id="coups"
+              type="geojson"
+              data={getCoupsFeatureCollection(filteredEvents)}
+              promoteId="id"
+            >
+              <Layer {...circleLayerStyle} />
+            </Source>
+          )}
+
+          {/* Historical event popup */}
+          {viewMode === "events" && selectedEvent && (
+            <Popup
+              longitude={selectedEvent.longitude}
+              latitude={selectedEvent.latitude}
+              onClose={() => {
+                setSelectedEvent(null);
+                setSelectedCountry(null);
+              }}
+              closeButton
+              closeOnClick={false}
+            >
+              <EventPopup
+                event={selectedEvent}
+                onNavigateToNarrative={() => {
+                  setSelectedEvent(null);
+                  setSelectedCountry(null);
+                }}
+              />
+            </Popup>
+          )}
+        </Map>
+
+        <PredictionPanel
+          prediction={selectedPrediction}
+          onClose={() => setSelectedPrediction(null)}
+        />
+        {viewMode === "events" ? <MapLegend /> : <RiskMapLegend />}
+      </div>
+    </Layout>
+  );
+}
