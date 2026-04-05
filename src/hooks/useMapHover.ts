@@ -22,6 +22,7 @@ export function useMapHover({
     (event: MapLayerMouseEvent) => {
       const map = mapRef.current?.getMap();
       if (!map || !event.features?.length) return;
+      if (!map.getSource(sourceId)) return;
 
       const feature = event.features[0];
 
@@ -31,7 +32,7 @@ export function useMapHover({
       if (hoveredId != null && hoveredId !== feature.id) {
         map.setFeatureState(
           { source: sourceId, id: hoveredId },
-          { hover: false }
+          { hover: false },
         );
       }
 
@@ -39,20 +40,20 @@ export function useMapHover({
       map.getCanvas().style.cursor = "pointer";
       map.setFeatureState(
         { source: sourceId, id: feature.id },
-        { hover: true }
+        { hover: true },
       );
     },
-    [hoveredId, mapRef, sourceId]
+    [hoveredId, mapRef, sourceId],
   );
 
   const onMouseLeave = useCallback(() => {
     const map = mapRef.current?.getMap();
     if (!map) return;
 
-    if (hoveredId != null) {
+    if (hoveredId != null && map.getSource(sourceId)) {
       map.setFeatureState(
         { source: sourceId, id: hoveredId },
-        { hover: false }
+        { hover: false },
       );
       setHoveredId(null);
     }
@@ -62,4 +63,3 @@ export function useMapHover({
 
   return { onMouseEnter, onMouseLeave };
 }
-
