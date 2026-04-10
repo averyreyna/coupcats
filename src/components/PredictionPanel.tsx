@@ -195,7 +195,7 @@ export default function PredictionPanel({ prediction, onClose }: Props) {
           <StatRow 
             label="Military Influence" 
             value={safeNum(prediction.Military_influence)} 
-            display={safeNum(prediction.Military_influence) === 1 ? "Yes" : "No"}
+            display={safeNum(prediction.Military_influence) === 1 ? `${((prediction.Military_influence) * 100).toFixed(2)}%` : "N/A"} bar
             tooltip="Influence of military (need better desc)" />
           <StatRow 
             label="Leader Age" 
@@ -204,7 +204,7 @@ export default function PredictionPanel({ prediction, onClose }: Props) {
           <StatRow 
             label="Leader Duration" 
             value={safeNum(prediction.Leader_duration) / 30}
-            display={prediction.Leader_duration != null ? `${prediction.Leader_duration} years` : "N/A"}
+            display={prediction.Leader_duration != null ? `${prediction.Leader_duration} months` : "N/A"}
             tooltip="Leader duration can be entire groups of people" />
         </Section>
 
