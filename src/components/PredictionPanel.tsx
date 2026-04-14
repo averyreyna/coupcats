@@ -19,6 +19,7 @@ function safeFmt(value: unknown, decimals = 3): string {
 
 interface Props {
   prediction: CoupPrediction | null;
+  displayName?: string;
   onClose: () => void;
 }
 
@@ -105,7 +106,7 @@ function StatRow({
     }
 }
 
-export default function PredictionPanel({ prediction, onClose }: Props) {
+export default function PredictionPanel({ prediction, displayName, onClose }: Props) {
   if (!prediction) return null;
 
   const prob = prediction.yhat;
@@ -133,7 +134,7 @@ export default function PredictionPanel({ prediction, onClose }: Props) {
       {/* Header */}
       <div className="flex items-start justify-between p-4 border-b border-gray-800">
         <div>
-          <h2 className="font-bold text-white text-xl">{prediction.country}</h2>
+          <h2 className="font-bold text-white text-xl">{displayName ?? prediction.country}</h2>
           <p className="text-gray-400 text-xs mt-0.5">
             {prediction.year} · Month {prediction.month}
           </p>

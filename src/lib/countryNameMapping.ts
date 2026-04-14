@@ -8,6 +8,7 @@
 const COW_TO_GEOJSON: Record<string, string> = {
   "Antigua & Barbuda": "Antigua and Barbuda",
   "Bahamas": "The Bahamas",
+  "Cape Verde": "Cabo Verde",
   "Congo": "Republic of the Congo",
   "Czech Republic": "Czechia",
   "East Timor": "East Timor",
@@ -19,6 +20,7 @@ const COW_TO_GEOJSON: Record<string, string> = {
   "Swaziland": "eSwatini",
   "Tanzania": "United Republic of Tanzania",
   "United States": "United States of America",
+  "Yugoslavia": "Republic of Serbia",
 };
 
 /**
@@ -27,4 +29,31 @@ const COW_TO_GEOJSON: Record<string, string> = {
  */
 export function cowNameToGeoJsonAdmin(cowName: string): string {
   return COW_TO_GEOJSON[cowName] ?? cowName;
+}
+
+/**
+ * Maps a clicked GeoJSON country name to the COW data name whose data should be shown.
+ * Used when a territory (Greenland) or renamed country (Serbia, Cabo Verde) is clicked.
+ */
+const GEOJSON_TO_COW_DATA: Record<string, string> = {
+  "Greenland":          "Denmark",
+  "Republic of Serbia": "Yugoslavia",
+  "Cabo Verde":         "Cape Verde",
+};
+
+export function getDataLookupName(geoName: string): string {
+  return GEOJSON_TO_COW_DATA[geoName] ?? geoName;
+}
+
+/**
+ * Returns additional GeoJSON country names that should be co-highlighted
+ * when the given country is selected (e.g. Greenland ↔ Denmark).
+ */
+const CO_HIGHLIGHT_PAIRS: Record<string, string[]> = {
+  "Greenland": ["Denmark"],
+  "Denmark":   ["Greenland"],
+};
+
+export function getCoHighlightNames(geoName: string): string[] {
+  return CO_HIGHLIGHT_PAIRS[geoName] ?? [];
 }

@@ -90,6 +90,12 @@ export function buildChoroplethFillColor(
     }
   }
 
+  // Greenland has no COW entry — color it the same as Denmark
+  const dkPred = latest.get("Denmark");
+  if (dkPred && !latest.has("Greenland")) {
+    latest.set("Greenland", dkPred);
+  }
+
   // Find max probability to normalize the color scale.
   // Raw values are tiny (0–0.06), so without normalization everything looks gray.
   const maxProb = Math.max(...[...latest.values()].map((p) => p.yhat), 0.001);
