@@ -254,7 +254,7 @@ export default function PredictionPanel({ prediction, onClose }: Props) {
         </Section>
 
         <Section title="Military">
-          <StatRow 
+          <StatRow
             label="Military Expenditure" 
             value={Math.min(safeNum(prediction.milex_spliced) / 30, 1)}
             display={prediction.milex_spliced != null ? `${safeNum(prediction.milex_spliced).toFixed(2)}%` : "N/A"} bar invert
@@ -277,20 +277,19 @@ export default function PredictionPanel({ prediction, onClose }: Props) {
         </Section>
 
         <Section title="Context">
-          <StatRow 
-            label="Neighboring Coup" 
+          <StatRow
+            label="Neighboring Coup"
             value={safeNum(prediction.neighboring_coup)}
             display={safeNum(prediction.neighboring_coup) === 1 ? "Yes" : "No"} />
-          <StatRow 
+          <StatRow
             label="Cold War Period" 
             value={safeNum(prediction.cold)}
             display={safeNum(prediction.cold) === 1 ? "Yes" : "No"} />
-          <StatRow 
+          <StatRow
             label="Foreign Visit" 
             value={safeNum(prediction.visit)}
             display={safeNum(prediction.visit) === 1 ? "Yes" : "No"} />
         </Section>
-
       </div>
     </div>
   );
