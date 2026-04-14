@@ -76,18 +76,12 @@ export default function App() {
       .catch((err) => console.error("Failed to load countries GeoJSON:", err));
   }, []);
 
-  //Additional states for the new data being pulled from the github json file
-  const [allPredictions, setAllPredictions] = useState<CoupPrediction[]>([]);
-  const [selectedPrediction, setSelectedPrediction] =
-    useState<CoupPrediction | null>(null);
-
-  useEffect(() => {
-    getPredictionFeatureCollection()
-      .then((fc) => {
-        setAllPredictions((fc.features ?? []).map((f) => f.properties));
-      })
-      .catch((err) => console.error("Prediction load error:", err));
-  }, []);
+  // Predictions are now bundled locally — no async fetch needed
+  const allPredictions = useMemo<CoupPrediction[]>(
+    () => getPredictionFeatureCollection().features.map((f) => f.properties),
+    [],
+  );
+  const [selectedPrediction, setSelectedPrediction] = useState<CoupPrediction | null>(null);
 
   // Build choropleth fill-color expression for risk mode
   const choroplethFillColor = useMemo(() => {
@@ -420,12 +414,11 @@ export default function App() {
           )}
         </Map>
 
-        <PredictionPanel
-          prediction={selectedPrediction}
-          onClose={() => setSelectedPrediction(null)}
-        />
-        {viewMode === "events" ? <MapLegend /> : <RiskMapLegend />}
-      </div>
-    </Layout>
-  );
-}
+      <PredictionPanel
+        prediction={selectedPrediction}
+        onClose={() => setSelectedPrediction(null)}
+      />
+      {viewMode === "events" ? <MapLegend /> : <RiskMapLegend />}
+    </div>
+  </Layout>
+)};
