@@ -10,7 +10,7 @@ import Layout from "./components/Layout";
 import { useFilterStore } from "./store/useFilterStore";
 import { OUTCOME_COLORS } from "./lib/colors";
 import { buildChoroplethFillColor } from "./lib/riskColors";
-import { cowNameToGeoJsonAdmin } from "./lib/countryNameMapping";
+import { cowNameToGeoJsonAdmin, getDataLookupName, getCoHighlightNames } from "./lib/countryNameMapping";
 import {
   getCoupsFeatureCollection,
   getAllCoupEvents,
@@ -76,12 +76,15 @@ export default function App() {
       .catch((err) => console.error("Failed to load countries GeoJSON:", err));
   }, []);
 
-  // Predictions are now bundled locally — no async fetch needed
+  // Predictions are bundled locally — no async fetch needed
   const allPredictions = useMemo<CoupPrediction[]>(
     () => getPredictionFeatureCollection().features.map((f) => f.properties),
     [],
   );
-  const [selectedPrediction, setSelectedPrediction] = useState<CoupPrediction | null>(null);
+  const [selectedPrediction, setSelectedPrediction] =
+    useState<CoupPrediction | null>(null);
+  const [selectedPredictionDisplayName, setSelectedPredictionDisplayName] =
+    useState<string | null>(null);
 
   // Build choropleth fill-color expression for risk mode
   const choroplethFillColor = useMemo(() => {
@@ -92,6 +95,20 @@ export default function App() {
   const selectedEvent = useFilterStore((s) => s.selectedEvent);
   const setSelectedEvent = useFilterStore((s) => s.setSelectedEvent);
   const setSelectedCountry = useFilterStore((s) => s.setSelectedCountry);
+  const selectedGeoNames = useFilterStore((s) => s.selectedGeoNames);
+  const setSelectedGeoNames = useFilterStore((s) => s.setSelectedGeoNames);
+
+  // Sync selected country outlines to map feature state
+  const prevSelectedGeoNames = useRef<string[]>([]);
+  useEffect(() => {
+    const map = mapRef.current?.getMap();
+    if (!map || !mapLoaded) return;
+    for (const name of prevSelectedGeoNames.current)
+      map.setFeatureState({ source: "countries", id: name }, { selected: false });
+    for (const name of selectedGeoNames)
+      map.setFeatureState({ source: "countries", id: name }, { selected: true });
+    prevSelectedGeoNames.current = selectedGeoNames;
+  }, [selectedGeoNames, mapLoaded]);
   const searchQuery = useFilterStore((s) => s.searchQuery);
   const selectedOutcomes = useFilterStore((s) => s.selectedOutcomes);
   const selectedRegions = useFilterStore((s) => s.selectedRegions);
@@ -207,6 +224,7 @@ export default function App() {
         if (countryName) {
           setSelectedCountry(countryName);
           setSelectedEvent(null);
+          setSelectedGeoNames([countryName, ...getCoHighlightNames(countryName)]);
           return;
         }
       }
@@ -260,6 +278,7 @@ export default function App() {
         if (nearestCountry && minDistance < 15) {
           setSelectedCountry(nearestCountry);
           setSelectedEvent(null);
+          setSelectedGeoNames([nearestCountry, ...getCoHighlightNames(nearestCountry)]);
           return;
         }
       }
@@ -267,8 +286,9 @@ export default function App() {
       // No country or coup clicked
       setSelectedEvent(null);
       setSelectedCountry(null);
+      setSelectedGeoNames([]);
     },
-    [setSelectedEvent, setSelectedCountry, countriesGeoJSON],
+    [setSelectedEvent, setSelectedCountry, setSelectedGeoNames, countriesGeoJSON],
   );
 
   useClearSelectionOnMapClick({
@@ -285,8 +305,10 @@ export default function App() {
       setSelectedEvent(null);
     } else {
       setSelectedPrediction(null);
+      setSelectedPredictionDisplayName(null);
     }
-  }, [viewMode, setSelectedEvent, setSelectedPrediction]);
+    setSelectedGeoNames([]);
+  }, [viewMode, setSelectedEvent, setSelectedPrediction, setSelectedGeoNames]);
 
   return (
     <Layout mapRef={mapRef} allEvents={allEvents}>
@@ -319,18 +341,25 @@ export default function App() {
             if (!feature) {
               setSelectedEvent(null);
               setSelectedPrediction(null);
+              setSelectedPredictionDisplayName(null);
+              setSelectedGeoNames([]);
               return;
             }
 
             if (feature.layer.id === "countries-fill") {
               const geoName = feature.properties?.name;
               if (geoName) {
+                const cowLookup = getDataLookupName(geoName);
                 const pred = allPredictions.find(
                   (p) =>
-                    p.country === geoName ||
-                    cowNameToGeoJsonAdmin(p.country) === geoName,
+                    p.country === cowLookup ||
+                    cowNameToGeoJsonAdmin(p.country) === cowLookup,
                 );
-                if (pred) setSelectedPrediction(pred);
+                if (pred) {
+                  setSelectedPrediction(pred);
+                  setSelectedPredictionDisplayName(geoName);
+                  setSelectedGeoNames([geoName, ...getCoHighlightNames(geoName)]);
+                }
               }
             }
           }}
@@ -347,6 +376,7 @@ export default function App() {
               <Layer
                 id="countries-fill"
                 type="fill"
+                beforeId="waterway_label"
                 paint={{
                   "fill-color":
                     viewMode === "risk" && choroplethFillColor
@@ -358,6 +388,7 @@ export default function App() {
               <Layer
                 id="countries-outline"
                 type="line"
+                beforeId="waterway_label"
                 paint={{
                   "line-color": "#334155",
                   "line-width": 0.5,
@@ -366,12 +397,27 @@ export default function App() {
               <Layer
                 id="countries-hover-outline"
                 type="line"
+                beforeId="waterway_label"
                 paint={{
                   "line-color": "#e2e8f0",
                   "line-width": [
                     "case",
                     ["boolean", ["feature-state", "hover"], false],
                     2,
+                    0,
+                  ] as any,
+                }}
+              />
+              <Layer
+                id="countries-selected-outline"
+                type="line"
+                beforeId="waterway_label"
+                paint={{
+                  "line-color": "#f59e0b",
+                  "line-width": [
+                    "case",
+                    ["boolean", ["feature-state", "selected"], false],
+                    2.5,
                     0,
                   ] as any,
                 }}
@@ -399,6 +445,7 @@ export default function App() {
               onClose={() => {
                 setSelectedEvent(null);
                 setSelectedCountry(null);
+                setSelectedGeoNames([]);
               }}
               closeButton
               closeOnClick={false}
@@ -408,17 +455,24 @@ export default function App() {
                 onNavigateToNarrative={() => {
                   setSelectedEvent(null);
                   setSelectedCountry(null);
+                  setSelectedGeoNames([]);
                 }}
               />
             </Popup>
           )}
         </Map>
 
-      <PredictionPanel
-        prediction={selectedPrediction}
-        onClose={() => setSelectedPrediction(null)}
-      />
-      {viewMode === "events" ? <MapLegend /> : <RiskMapLegend />}
-    </div>
-  </Layout>
-)};
+        <PredictionPanel
+          prediction={selectedPrediction}
+          displayName={selectedPredictionDisplayName ?? undefined}
+          onClose={() => {
+            setSelectedPrediction(null);
+            setSelectedPredictionDisplayName(null);
+            setSelectedGeoNames([]);
+          }}
+        />
+        {viewMode === "events" ? <MapLegend /> : <RiskMapLegend />}
+      </div>
+    </Layout>
+  );
+}
