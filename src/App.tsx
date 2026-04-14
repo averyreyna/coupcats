@@ -75,17 +75,12 @@ export default function App() {
       .catch((err) => console.error("Failed to load countries GeoJSON:", err));
   }, []);
 
-  //Additional states for the new data being pulled from the github json file
-  const [allPredictions, setAllPredictions] = useState<CoupPrediction[]>([]);
+  // Predictions are now bundled locally — no async fetch needed
+  const allPredictions = useMemo<CoupPrediction[]>(
+    () => getPredictionFeatureCollection().features.map((f) => f.properties),
+    [],
+  );
   const [selectedPrediction, setSelectedPrediction] = useState<CoupPrediction | null>(null);
-
-  useEffect(() => {
-    getPredictionFeatureCollection()
-    .then((fc) => {
-      setAllPredictions((fc.features ?? []).map((f) => f.properties));
-    })
-    .catch((err) => console.error("Prediction load error:", err));
-  }, []);
 
   // Build choropleth fill-color expression for risk mode
   const choroplethFillColor = useMemo(() => {

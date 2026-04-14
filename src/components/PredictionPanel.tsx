@@ -108,7 +108,7 @@ function StatRow({
 export default function PredictionPanel({ prediction, onClose }: Props) {
   if (!prediction) return null;
 
-  const prob = prediction.prediction_prob;
+  const prob = prediction.yhat;
   const hasProb = prob != null && !isNaN(prob);
   const riskLabel = !hasProb ? "No Prediction Available" :
     prob < 0.05 ? "Very Low" :
@@ -184,18 +184,18 @@ export default function PredictionPanel({ prediction, onClose }: Props) {
             tooltip="How the country is ruled (e.g. democracy)" />
           <StatRow 
             label="Democracy Level" 
-            value={safeNum(prediction.Democracy_level)} 
-            display={safeFmt(prediction.Democracy_level)} bar
+            value={safeNum(prediction.polyarchy)} 
+            display={safeFmt(prediction.polyarchy)} bar
             tooltip="How close the country's regime is to a democracy" />
           <StatRow 
             label="Military Regime" 
-            value={safeNum(prediction.Military_regime)} 
-            display={safeNum(prediction.Military_regime) === 1 ? "Yes" : "No"}
+            value={safeNum(prediction.milreg)} 
+            display={safeNum(prediction.milreg) === 1 ? "Yes" : "No"}
             tooltip="Something about military and its power over people" />
           <StatRow 
             label="Military Influence" 
-            value={safeNum(prediction.Military_influence)} 
-            display={safeNum(prediction.Military_influence) === 1 ? `${((prediction.Military_influence) * 100).toFixed(2)}%` : "N/A"} bar
+            value={safeNum(prediction.milit)} 
+            display={safeNum(prediction.milit) === 1 ? `${((prediction.milit) * 100).toFixed(2)}%` : "N/A"} bar
             tooltip="Influence of military (need better desc)" />
           <StatRow 
             label="Leader Age" 
@@ -212,30 +212,25 @@ export default function PredictionPanel({ prediction, onClose }: Props) {
           <StatRow 
             label="GDP per Capita (log)" 
             value={0} 
-            display={safeFmt(prediction.GDP_per_cap, 4)}
+            display={safeFmt(prediction.gdppc, 4)}
             tooltip="What the hell does this mean?" />
           <StatRow 
             label="Change in GDP per Capita" 
-            value={(safeNum(prediction.Change_GDP_per_cap) + 0.2) / 0.4}
-            display={prediction.Change_GDP_per_cap != null ? `${(safeNum(prediction.Change_GDP_per_cap) * 100).toFixed(2)}%` : "N/A"} bar
+            value={(safeNum(prediction.ch_gdppc) + 0.2) / 0.4}
+            display={prediction.ch_gdppc != null ? `${(safeNum(prediction.ch_gdppc) * 100).toFixed(2)}%` : "N/A"} bar
             tooltip="Still don't know what this means" />
           <StatRow 
-            label="Inflation" 
-            value={Math.min(safeNum(prediction.Inflation) / 20, 1)}
-            display={prediction.Inflation != null ? `${safeNum(prediction.Inflation).toFixed(2)}%` : "N/A"} bar invert
-            tooltip="Dollar amount go down, price go up, dr dr" />
-          <StatRow 
             label="Trade (% of GDP)" 
-            value={Math.min(safeNum(prediction.Trade) / 100, 1)}
-            display={prediction.Trade != null ? `${safeNum(prediction.Trade).toFixed(2)}%` : "N/A"} bar
+            value={Math.min(safeNum(prediction.ltrade) / 100, 1)}
+            display={prediction.ltrade != null ? `${safeNum(prediction.ltrade).toFixed(2)}%` : "N/A"} bar
             tooltip="How does this affect things?" />
         </Section>
 
         <Section title="Society">
           <StatRow 
             label="Women's Political Participation" 
-            value={safeNum(prediction.Women_political_participation)}
-            display={safeFmt(prediction.Women_political_participation)} bar
+            value={safeNum(prediction.wom_polpart)}
+            display={safeFmt(prediction.wom_polpart)} bar
             tooltip="Women" />
           <StatRow 
             label="Women's Civil Liberties" 
@@ -249,25 +244,25 @@ export default function PredictionPanel({ prediction, onClose }: Props) {
             tooltip="Are they allowed to speak their piece?" />
           <StatRow 
             label="Protests" 
-            value={Math.min(safeNum(prediction.Protests) / 5, 1)}
-            display={safeFmt(prediction.Protests)} bar invert
+            value={Math.min(safeNum(prediction.protests) / 5, 1)}
+            display={safeFmt(prediction.protests)} bar invert
             tooltip="How many? How effective?" />
           <StatRow 
             label="Civil Wars" 
-            value={safeNum(prediction.Civil_wars)}
-            display={safeNum(prediction.Civil_wars) === 1 ? "Yes" : "No"} />
+            value={safeNum(prediction.cw)}
+            display={safeNum(prediction.cw) === 1 ? "Yes" : "No"} />
         </Section>
 
         <Section title="Military">
           <StatRow 
             label="Military Expenditure" 
-            value={Math.min(safeNum(prediction.milex) / 30, 1)}
-            display={prediction.milex != null ? `${safeNum(prediction.milex).toFixed(2)}%` : "N/A"} bar invert
+            value={Math.min(safeNum(prediction.milex_spliced) / 30, 1)}
+            display={prediction.milex_spliced != null ? `${safeNum(prediction.milex_spliced).toFixed(2)}%` : "N/A"} bar invert
             tooltip="Don't know what this means" />
           <StatRow 
             label="Military Personnel" 
-            value={Math.min(safeNum(prediction.milper) / 10, 1)}
-            display={safeFmt(prediction.milper, 4)} bar
+            value={Math.min(safeNum(prediction.milper_spliced) / 10, 1)}
+            display={safeFmt(prediction.milper_spliced, 4)} bar
             tooltip="What kind? Who? Why?" />
           <StatRow 
             label="Soldier Quality" 
@@ -288,8 +283,8 @@ export default function PredictionPanel({ prediction, onClose }: Props) {
             display={safeNum(prediction.neighboring_coup) === 1 ? "Yes" : "No"} />
           <StatRow 
             label="Cold War Period" 
-            value={safeNum(prediction.Cold_war)}
-            display={safeNum(prediction.Cold_war) === 1 ? "Yes" : "No"} />
+            value={safeNum(prediction.cold)}
+            display={safeNum(prediction.cold) === 1 ? "Yes" : "No"} />
           <StatRow 
             label="Foreign Visit" 
             value={safeNum(prediction.visit)}
