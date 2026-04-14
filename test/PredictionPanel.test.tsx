@@ -21,8 +21,8 @@
 
 import { render, screen } from "@testing-library/react"
 import { describe, it, expect } from "vitest"
-import PredictionPanel from "./PredictionPanel.tsx"
-import type { CoupPrediction } from "../types/coup.ts"
+import PredictionPanel from "../src/components/PredictionPanel.tsx"
+import type { CoupPrediction } from "../src/types/coup.ts"
 
 const mockPrediction: CoupPrediction = {
   country: "Test Country",
