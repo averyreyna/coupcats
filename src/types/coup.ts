@@ -73,7 +73,7 @@ export interface CoupPrediction{
   Sub_africa: number;
   Trade: number;
   neighboring_coup: number;
-  prediction_prob: number;
+  prediction_prob: number | null;
 }
 //Creating the type in which the json is exported as
 export type PredictionFeatureCollection = GeoJSON.FeatureCollection<

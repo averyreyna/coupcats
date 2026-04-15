@@ -1,21 +1,14 @@
 import { useState } from "react";
-import {
-  Globe,
-  List,
-  Filter,
-  Info,
-  Settings,
-  PanelLeftClose,
-  PanelLeft,
-} from "lucide-react";
+import { Globe, List, Filter, Info, Settings, PanelLeftClose, PanelLeft } from "lucide-react";
+import { css } from "styled-system/css";
 
 export type NavId = "home" | "events" | "filters" | "about";
 
 const NAV_ITEMS: { id: NavId; icon: typeof Globe; label: string }[] = [
-  { id: "home", icon: Globe, label: "Home" },
-  { id: "events", icon: List, label: "Events" },
-  { id: "filters", icon: Filter, label: "Filters" },
-  { id: "about", icon: Info, label: "About" },
+  { id: "home",    icon: Globe,   label: "Home" },
+  { id: "events",  icon: List,    label: "Events" },
+  { id: "filters", icon: Filter,  label: "Filters" },
+  { id: "about",   icon: Info,    label: "About" },
 ];
 
 export interface SidebarProps {
@@ -23,16 +16,54 @@ export interface SidebarProps {
   onNavChange: (id: NavId) => void;
 }
 
+const logoIconStyle = css({
+  display: "flex",
+  height: "9",
+  width: "9",
+  flexShrink: "0",
+  alignItems: "center",
+  justifyContent: "center",
+  borderRadius: "lg",
+  backgroundColor: "var(--colors-accent-muted)",
+  color: "var(--colors-accent-text)",
+});
+
 export default function Sidebar({ activeNav, onNavChange }: SidebarProps) {
   const [collapsed, setCollapsed] = useState(false);
 
   return (
     <aside
-      className={`flex h-14 w-full shrink-0 flex-row items-center justify-around border-t border-gray-800 bg-[#0f1117] pb-[env(safe-area-inset-bottom)] transition-[width] duration-300 ease-in-out md:h-full md:flex-col md:justify-start md:border-r md:border-t-0 md:pb-0 ${collapsed ? "md:w-[72px]" : "md:w-[280px]"}`}
+      className={css({
+        display: "flex",
+        height: "14",
+        width: "full",
+        flexShrink: "0",
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "space-around",
+        borderTopWidth: "1px",
+        borderTopStyle: "solid",
+        borderTopColor: "var(--colors-border-default)",
+        backgroundColor: "var(--colors-bg-panel)",
+        paddingBottom: "env(safe-area-inset-bottom)",
+        transition: "width 300ms ease-in-out",
+        md: {
+          height: "full",
+          flexDirection: "column",
+          justifyContent: "flex-start",
+          borderTopWidth: "0",
+          borderRightWidth: "1px",
+          borderRightStyle: "solid",
+          borderRightColor: "var(--colors-border-default)",
+          paddingBottom: "0",
+          width: collapsed ? "72px" : "280px",
+        },
+      })}
     >
-      <div className="flex flex-1 items-center justify-around gap-0 md:hidden">
-        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-amber-500/20 text-amber-400">
-          <Globe className="h-5 w-5" />
+      {/* Mobile bottom nav */}
+      <div className={css({ display: "flex", flex: "1", alignItems: "center", justifyContent: "space-around", gap: "0", md: { display: "none" } })}>
+        <div className={logoIconStyle}>
+          <Globe className={css({ height: "5", width: "5" })} />
         </div>
         {NAV_ITEMS.map(({ id, icon: Icon, label }) => {
           const isActive = activeNav === id;
@@ -41,28 +72,42 @@ export default function Sidebar({ activeNav, onNavChange }: SidebarProps) {
               key={id}
               type="button"
               onClick={() => onNavChange(id)}
-              className={`flex min-h-[44px] min-w-[44px] flex-shrink-0 items-center justify-center rounded-lg transition-colors hover:bg-gray-800/60 ${isActive ? "text-amber-400" : "text-gray-400"}`}
+              className={css({
+                display: "flex",
+                minHeight: "44px",
+                minWidth: "44px",
+                flexShrink: "0",
+                alignItems: "center",
+                justifyContent: "center",
+                borderRadius: "lg",
+                cursor: "pointer",
+                color: isActive ? "var(--colors-accent-text)" : "var(--colors-text-muted)",
+                _hover: { backgroundColor: "var(--colors-bg-hover)" },
+              })}
               title={label}
             >
-              <Icon className="h-5 w-5" />
+              <Icon className={css({ height: "5", width: "5" })} />
             </button>
           );
         })}
       </div>
 
-      <div className="hidden md:flex md:h-full md:w-full md:flex-col">
-        <div className="flex min-h-[56px] items-center gap-3 border-b border-gray-800 px-3">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-amber-500/20 text-amber-400">
-            <Globe className="h-5 w-5" />
+      {/* Desktop sidebar */}
+      <div className={css({ display: "none", md: { display: "flex", height: "full", width: "full", flexDirection: "column" } })}>
+        {/* Logo row */}
+        <div className={css({ display: "flex", minHeight: "56px", alignItems: "center", gap: "3", borderBottomWidth: "1px", borderBottomStyle: "solid", borderBottomColor: "var(--colors-border-default)", paddingInline: "3" })}>
+          <div className={logoIconStyle}>
+            <Globe className={css({ height: "5", width: "5" })} />
           </div>
           {!collapsed && (
-            <span className="truncate text-sm font-semibold text-white">
+            <span className={css({ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontSize: "sm", fontWeight: "semibold", color: "var(--colors-text-primary)" })}>
               CoupView
             </span>
           )}
         </div>
 
-        <nav className="flex flex-1 flex-col gap-0.5 overflow-hidden py-2">
+        {/* Nav items */}
+        <nav className={css({ display: "flex", flex: "1", flexDirection: "column", gap: "0.5", overflow: "hidden", paddingBlock: "2" })}>
           {NAV_ITEMS.map(({ id, icon: Icon, label }) => {
             const isActive = activeNav === id;
             return (
@@ -70,21 +115,26 @@ export default function Sidebar({ activeNav, onNavChange }: SidebarProps) {
                 key={id}
                 type="button"
                 onClick={() => onNavChange(id)}
-                className={`
-                  flex items-center gap-3 px-3 py-2.5 text-left transition-all duration-200
-                  hover:scale-[1.02] hover:bg-gray-800/60
-                  ${collapsed ? "justify-center px-0" : ""}
-                  ${isActive ? "border-l-2 border-amber-500 bg-gray-800/40" : "border-l-2 border-transparent"}
-                `}
+                className={css({
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "3",
+                  paddingInline: collapsed ? "0" : "3",
+                  paddingBlock: "2.5",
+                  justifyContent: collapsed ? "center" : "flex-start",
+                  textAlign: "left",
+                  cursor: "pointer",
+                  borderLeftWidth: "2px",
+                  borderLeftStyle: "solid",
+                  borderLeftColor: isActive ? "var(--colors-accent-default)" : "transparent",
+                  backgroundColor: isActive ? "var(--colors-accent-muted)" : "transparent",
+                  _hover: { backgroundColor: "var(--colors-bg-hover)", transform: "scale(1.02)" },
+                })}
                 title={collapsed ? label : undefined}
               >
-                <Icon
-                  className={`h-5 w-5 shrink-0 ${isActive ? "text-amber-400" : "text-gray-400"}`}
-                />
+                <Icon className={css({ height: "5", width: "5", flexShrink: "0", color: isActive ? "var(--colors-accent-text)" : "var(--colors-text-muted)" })} />
                 {!collapsed && (
-                  <span
-                    className={`truncate text-sm ${isActive ? "text-white" : "text-gray-300"}`}
-                  >
+                  <span className={css({ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontSize: "sm", color: isActive ? "var(--colors-text-primary)" : "var(--colors-text-secondary)" })}>
                     {label}
                   </span>
                 )}
@@ -93,27 +143,28 @@ export default function Sidebar({ activeNav, onNavChange }: SidebarProps) {
           })}
         </nav>
 
-        <div className="border-t border-gray-800 py-2">
+        {/* Footer */}
+        <div className={css({ borderTopWidth: "1px", borderTopStyle: "solid", borderTopColor: "var(--colors-border-default)", paddingBlock: "2" })}>
           <button
             type="button"
-            className="flex w-full items-center gap-3 px-3 py-2.5 text-left text-gray-400 transition-all duration-200 hover:scale-[1.02] hover:bg-gray-800/60 hover:text-gray-300"
+            className={css({ display: "flex", width: "full", alignItems: "center", gap: "3", paddingInline: "3", paddingBlock: "2.5", textAlign: "left", cursor: "pointer", color: "var(--colors-text-muted)", _hover: { backgroundColor: "var(--colors-bg-hover)", color: "var(--colors-text-secondary)", transform: "scale(1.02)" } })}
             title={collapsed ? "Settings" : undefined}
           >
-            <Settings className="h-5 w-5 shrink-0" />
-            {!collapsed && <span className="truncate text-sm">Settings</span>}
+            <Settings className={css({ height: "5", width: "5", flexShrink: "0" })} />
+            {!collapsed && <span className={css({ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontSize: "sm" })}>Settings</span>}
           </button>
           <button
             type="button"
             onClick={() => setCollapsed((c) => !c)}
-            className="flex w-full items-center justify-center gap-3 px-3 py-2.5 text-gray-400 transition-all duration-200 hover:bg-gray-800/60 hover:text-gray-300"
+            className={css({ display: "flex", width: "full", alignItems: "center", justifyContent: "center", gap: "3", paddingInline: "3", paddingBlock: "2.5", cursor: "pointer", color: "var(--colors-text-muted)", _hover: { backgroundColor: "var(--colors-bg-hover)", color: "var(--colors-text-secondary)" } })}
             title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
           >
             {collapsed ? (
-              <PanelLeft className="h-5 w-5" />
+              <PanelLeft className={css({ height: "5", width: "5" })} />
             ) : (
               <>
-                <PanelLeftClose className="h-5 w-5 shrink-0" />
-                <span className="truncate text-sm">Collapse</span>
+                <PanelLeftClose className={css({ height: "5", width: "5", flexShrink: "0" })} />
+                <span className={css({ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontSize: "sm" })}>Collapse</span>
               </>
             )}
           </button>

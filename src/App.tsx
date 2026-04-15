@@ -1,25 +1,26 @@
 import { useRef, useState, useCallback, useMemo, useEffect } from "react";
+import { css } from "styled-system/css";
 import { Map, Source, Layer, Popup, type MapRef } from "@vis.gl/react-maplibre";
 import type {
   CircleLayerSpecification,
   FillLayerSpecification,
   MapLayerMouseEvent,
 } from "maplibre-gl";
-import { PredictionFeatureCollection, type CoupEvent, type CoupPrediction } from "./types/coup";
+import { type CoupEvent, type CoupPrediction } from "./types/coup";
 import PredictionPanel from "./components/PredictionPanel"
 import EventPopup from "./components/EventPopup";
 import MapLegend from "./components/MapLegend";
 import Layout from "./components/Layout";
 import { useFilterStore } from "./store/useFilterStore";
 import { OUTCOME_COLORS, PREDICTION_NULL_COLOR } from "./lib/colors";
-import { getCoupsFeatureCollection, getAllCoupEvents, getPredictionFeatureCollection, getAllPredictions, buildPredictionProbMap, COW_TO_ADMIN_ALIASES } from "./lib/coupData";
+import { getCoupsFeatureCollection, getAllCoupEvents, getPredictionFeatureCollection, buildPredictionProbMap, COW_TO_ADMIN_ALIASES } from "./lib/coupData";
 import { buildMapFilterExpression } from "./lib/filterHelpers";
 import { useMapHover } from "./hooks/useMapHover";
 import { useEscapeToClearSelection } from "./hooks/useEscapeToClearSelection";
 import { useClearSelectionOnMapClick } from "./hooks/useClearSelectionOnMapClick";
 
 const MAP_STYLE =
-  "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json";
+  "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json";
 
 // maplibre expressions: radius by feature-state hover, color by outcome property
 const circleLayerPaint: CircleLayerSpecification["paint"] = {
@@ -45,41 +46,10 @@ const circleLayerPaint: CircleLayerSpecification["paint"] = {
     OUTCOME_COLORS.alleged,
   ],
   "circle-stroke-width": 2,
-  "circle-stroke-color": "#020617",
+  "circle-stroke-color": "#FFFFFF",
   "circle-opacity": 1,
 };
 
-//The style for the prediction style
-const predictionLayerStyle: CircleLayerSpecification = {
-  id: "prediction-circles",
-  type: "circle",
-  source: "predictions",
-  paint: {
-    "circle-radius": [
-      "case",
-      ["boolean", ["feature-state", "hover"], false],
-      14,
-      10,
-    ],
-    "circle-color": [
-      "case",
-      ["==", ["get", "prediction_prob"], null],
-      "#6b7280",  // gray — no valid prediction
-      [
-        "interpolate",
-        ["linear"],
-        ["get", "prediction_prob"],
-        0,    "#22c55e",   // green  — very low risk
-        0.05, "#eab308",  // yellow — moderate risk
-        0.15, "#f97316",  // orange — elevated risk
-        0.30, "#ef4444",  // red    — high risk
-      ],
-    ],
-    "circle-stroke-width": 2,
-    "circle-stroke-color": "#020617",
-    "circle-opacity": 0.85,
-  },
-};
 
 const countryHeatmapLayerStyle: Omit<FillLayerSpecification, "source"> = {
   id: "country-risk-fill",
@@ -87,7 +57,7 @@ const countryHeatmapLayerStyle: Omit<FillLayerSpecification, "source"> = {
   paint: {
     "fill-color": [
       "case",
-      ["==", ["get", "prediction_prob"], null],
+      ["==", ["get", "prediction_prob"], null as unknown as string],
       PREDICTION_NULL_COLOR,
       [
         "interpolate",
@@ -128,19 +98,15 @@ export default function App() {
       .catch((err) => console.error("Failed to load countries GeoJSON:", err));
   }, []);
 
-  //Additional states for the new data being pulled from the github json file
-  const [predictionCollection, setPredictionCollection] = useState<PredictionFeatureCollection | null>(null);
   const [allPredictions, setAllPredictions] = useState<CoupPrediction[]>([]);
-  const [predictionError, setPredictionError] = useState<string | null>(null);
   const [selectedPrediction, setSelectedPrediction] = useState<CoupPrediction | null>(null);
 
   useEffect(() => {
     getPredictionFeatureCollection()
-    .then((fc) => {
-      setPredictionCollection(fc);
-      setAllPredictions((fc.features ?? []).map((f) => f.properties));
-    })
-    .catch((err) => setPredictionError(err.message));
+      .then((fc) => {
+        setAllPredictions((fc.features ?? []).map((f) => f.properties));
+      })
+      .catch((err) => console.error("Failed to load predictions:", err));
   }, []);
 
   // Enrich countries GeoJSON with prediction_prob for the heatmap fill layer
@@ -208,17 +174,6 @@ export default function App() {
     mapRef,
     sourceId: "coups",
   });
-
-  const onPredictionClick = useCallback(
-    (e: MapLayerMouseEvent) => {
-      if(e.features?.length && e.features[0].properties){
-        setSelectedPrediction(e.features[0].properties as CoupPrediction);
-      }else {
-        setSelectedPrediction(null);
-      }
-    },
-    [setSelectedPrediction]
-  );
 
   const onClick = useCallback(
     (e: MapLayerMouseEvent) => {
@@ -311,10 +266,10 @@ export default function App() {
 
 return (
   <Layout mapRef={mapRef} allEvents={allEvents}>
-    <div className="relative h-full w-full">
+    <div className={css({ position: "relative", height: "full", width: "full" })}>
       {!mapLoaded && (
-        <div className="absolute inset-0 z-20 flex items-center justify-center bg-[#0f1117]">
-          <div className="h-8 w-8 animate-spin rounded-full border-2 border-amber-500/30 border-t-amber-500" />
+        <div className={css({ position: "absolute", inset: "0", zIndex: "20", display: "flex", alignItems: "center", justifyContent: "center", backgroundColor: "var(--colors-bg-app)" })}>
+          <div className={css({ height: "8", width: "8", borderRadius: "full", borderWidth: "2px", borderStyle: "solid", borderColor: "var(--colors-border-default)", borderTopColor: "var(--colors-accent-default)" })} style={{ animation: "spin 1s linear infinite" }} />
         </div>
       )}
 

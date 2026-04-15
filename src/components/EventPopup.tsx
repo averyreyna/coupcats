@@ -1,3 +1,4 @@
+import { css } from "styled-system/css";
 import type { CoupEvent } from "../types/coup";
 import { OUTCOME_STYLES } from "../lib/outcomeStyles";
 import { formatDate } from "../lib/date";
@@ -6,36 +7,91 @@ export interface EventPopupProps {
   event: CoupEvent;
 }
 
+const cardStyle = css({
+  minWidth: "240px",
+  maxWidth: "min(320px, calc(100vw - 2rem))",
+  borderRadius: "lg",
+  borderWidth: "1px",
+  borderStyle: "solid",
+  borderColor: "var(--colors-border-default)",
+  backgroundColor: "var(--colors-bg-panel)",
+  boxShadow: "var(--shadows-xl)",
+  paddingTop: "7",
+  paddingRight: "7",
+  paddingBottom: "3",
+  paddingLeft: "3",
+  fontFamily: "var(--fonts-sans)",
+});
+
+const idStyle = css({
+  fontSize: "xs",
+  color: "var(--colors-text-subtle)",
+  fontFamily: "var(--fonts-mono)",
+});
+
+const countryStyle = css({
+  marginTop: "1",
+  fontSize: "sm",
+  fontWeight: "bold",
+  color: "var(--colors-text-primary)",
+});
+
+const tagRowStyle = css({
+  marginTop: "1.5",
+  display: "flex",
+  flexWrap: "wrap",
+  alignItems: "center",
+  gap: "1.5",
+});
+
+const geoTagStyle = css({
+  borderRadius: "full",
+  backgroundColor: "var(--colors-bg-muted)",
+  paddingInline: "2",
+  paddingBlock: "0.5",
+  fontSize: "xs",
+  color: "var(--colors-text-muted)",
+});
+
+const descStyle = css({
+  marginTop: "1.5",
+  fontSize: "xs",
+  color: "var(--colors-text-muted)",
+  lineHeight: "relaxed",
+  overflow: "hidden",
+  display: "-webkit-box",
+  WebkitLineClamp: "2",
+});
+
+const dateRowStyle = css({
+  marginTop: "1.5",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "flex-end",
+  gap: "1",
+  fontSize: "xs",
+  color: "var(--colors-text-subtle)",
+});
+
 export default function EventPopup({ event }: EventPopupProps) {
   const style = OUTCOME_STYLES[event.outcome];
 
   return (
-    <div
-      className="popup-enter min-w-[240px] max-w-[min(320px,calc(100vw-2rem))] rounded-lg border border-gray-700/50 bg-[#1a1d26] shadow-xl pt-7 pr-7 pb-3 pl-3"
-      style={{ fontFamily: "'DM Sans', sans-serif" }}
-    >
-      <div className="font-mono text-xs text-gray-500" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
-        {event.id}
-      </div>
-      <h3 className="mt-1 text-sm font-bold text-white">{event.country}</h3>
-      <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
-        <span
-          className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs ${style.badgeClass}`}
-        >
-          <span className={`h-1.5 w-1.5 rounded-full ${style.dotClass}`} />
+    <div className={`popup-enter ${cardStyle}`}>
+      <div className={idStyle}>{event.id}</div>
+      <h3 className={countryStyle}>{event.country}</h3>
+      <div className={tagRowStyle}>
+        <span className={style.badgeClass}>
+          <span className={style.dotClass} />
           {style.label}
         </span>
-        <span className="rounded-full bg-gray-700/50 px-2 py-0.5 text-xs text-gray-400">
-          Geolocated
-        </span>
+        <span className={geoTagStyle}>Geolocated</span>
       </div>
       {event.description && (
-        <p className="mt-1.5 text-xs text-gray-400 line-clamp-2 leading-relaxed">
-          {event.description}
-        </p>
+        <p className={descStyle} style={{ WebkitBoxOrient: "vertical" }}>{event.description}</p>
       )}
-      <div className="mt-1.5 flex items-center justify-end gap-1 text-xs text-gray-500">
-        <CalendarIcon className="h-3.5 w-3.5 shrink-0" />
+      <div className={dateRowStyle}>
+        <CalendarIcon className={css({ height: "3.5", width: "3.5", flexShrink: "0" })} />
         {formatDate(event.date)}
       </div>
     </div>

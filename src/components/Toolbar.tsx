@@ -1,4 +1,5 @@
 import { Search } from "lucide-react";
+import { css } from "styled-system/css";
 import FilterDropdown from "./FilterDropdown";
 import FilterCheckboxItem from "./FilterCheckboxItem";
 import { useFilterStore } from "../store/useFilterStore";
@@ -16,6 +17,114 @@ export interface ToolbarProps {
   tags: string[];
 }
 
+const toolbarStyle = css({
+  position: "absolute",
+  left: "0",
+  right: "0",
+  top: "0",
+  zIndex: "10",
+  display: "flex",
+  flexDirection: "column",
+  gap: "2",
+  borderBottomWidth: "1px",
+  borderBottomStyle: "solid",
+  borderBottomColor: "var(--colors-border-default)",
+  backgroundColor: "color-mix(in srgb, var(--colors-bg-app) 85%, transparent)",
+  backdropFilter: "blur(8px)",
+  paddingInline: "3",
+  paddingBlock: "3",
+  paddingTop: "max(0.75rem, env(safe-area-inset-top))",
+  md: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: "4",
+    paddingInline: "4",
+  },
+});
+
+const searchWrapperStyle = css({
+  display: "flex",
+  minWidth: "0",
+  flex: "1",
+  alignItems: "center",
+});
+
+const searchInnerStyle = css({
+  position: "relative",
+  display: "flex",
+  width: "full",
+  maxWidth: "md",
+  alignItems: "center",
+});
+
+const searchInputStyle = css({
+  minHeight: "44px",
+  width: "full",
+  borderRadius: "lg",
+  borderWidth: "1px",
+  borderStyle: "solid",
+  borderColor: "var(--colors-border-strong)",
+  backgroundColor: "var(--colors-bg-panel)",
+  paddingBlock: "2.5",
+  paddingLeft: "9",
+  paddingRight: "3",
+  fontSize: "sm",
+  color: "var(--colors-text-primary)",
+  _placeholder: { color: "var(--colors-text-subtle)" },
+  _focus: {
+    outline: "none",
+    borderColor: "var(--colors-accent-default)",
+    boxShadow: "0 0 0 3px color-mix(in srgb, #FF6A00 15%, transparent)",
+  },
+});
+
+const filtersRowStyle = css({
+  display: "flex",
+  minWidth: "0",
+  flexShrink: "0",
+  alignItems: "center",
+  gap: "2",
+  overflowX: "auto",
+  paddingBottom: "1",
+  md: { overflow: "visible", paddingBottom: "0" },
+});
+
+const toggleGroupStyle = css({
+  display: "flex",
+  alignItems: "center",
+  gap: "1",
+  borderRadius: "lg",
+  borderWidth: "1px",
+  borderStyle: "solid",
+  borderColor: "var(--colors-border-strong)",
+  backgroundColor: "var(--colors-bg-muted)",
+  padding: "1",
+});
+
+function viewModeButtonStyle(active: boolean) {
+  return css({
+    paddingInline: "3",
+    paddingBlock: "1.5",
+    borderRadius: "sm",
+    fontSize: "sm",
+    fontWeight: "medium",
+    cursor: "pointer",
+    ...(active
+      ? {
+          backgroundColor: "var(--colors-accent-muted)",
+          color: "var(--colors-accent-text)",
+          borderWidth: "1px",
+          borderStyle: "solid",
+          borderColor: "color-mix(in srgb, #FF6A00 30%, transparent)",
+        }
+      : {
+          color: "var(--colors-text-muted)",
+          _hover: { color: "var(--colors-text-secondary)" },
+        }),
+  });
+}
+
 export default function Toolbar({ regions, tags }: ToolbarProps) {
   const searchQuery = useFilterStore((s) => s.searchQuery);
   const setSearchQuery = useFilterStore((s) => s.setSearchQuery);
@@ -31,103 +140,66 @@ export default function Toolbar({ regions, tags }: ToolbarProps) {
   const setViewMode = useFilterStore((s) => s.setViewMode);
 
   return (
-    <div className="absolute left-0 right-0 top-0 z-10 flex flex-col gap-2 border-b border-gray-800/50 bg-[#0f1117]/80 px-3 py-3 pt-[max(0.75rem,env(safe-area-inset-top))] backdrop-blur-sm md:flex-row md:items-center md:justify-between md:gap-4 md:px-4">
-      <div className="flex min-w-0 flex-1 items-center">
-        <div className="relative flex w-full max-w-md items-center">
-          <Search className="absolute left-3 h-4 w-4 text-gray-500" />
+    <div className={toolbarStyle}>
+      <div className={searchWrapperStyle}>
+        <div className={searchInnerStyle}>
+          <Search className={css({ position: "absolute", left: "3", height: "4", width: "4", color: "var(--colors-text-subtle)" })} />
           <input
             type="search"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search for anything..."
-            className="min-h-[44px] w-full rounded-lg border border-gray-700 bg-gray-800/90 py-2.5 pl-9 pr-3 text-sm text-white placeholder-gray-500 focus:border-amber-500/50 focus:outline-none focus:ring-1 focus:ring-amber-500/50"
+            className={searchInputStyle}
           />
         </div>
       </div>
-      <div className="flex min-w-0 shrink-0 items-center gap-2 overflow-x-auto pb-1 md:overflow-visible md:pb-0">
+
+      <div className={filtersRowStyle}>
         {/* View Mode Toggle */}
-        <div className="flex items-center gap-1 rounded-lg border border-gray-700 bg-gray-800/50 p-1">
-          <button
-            onClick={() => setViewMode("events")}
-            className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${
-              viewMode === "events"
-                ? "bg-amber-500/20 text-amber-400 border border-amber-500/30"
-                : "text-gray-400 hover:text-gray-200"
-            }`}
-          >
+        <div className={toggleGroupStyle}>
+          <button onClick={() => setViewMode("events")} className={viewModeButtonStyle(viewMode === "events")}>
             Events
           </button>
-          <button
-            onClick={() => setViewMode("risk")}
-            className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${
-              viewMode === "risk"
-                ? "bg-amber-500/20 text-amber-400 border border-amber-500/30"
-                : "text-gray-400 hover:text-gray-200"
-            }`}
-          >
+          <button onClick={() => setViewMode("risk")} className={viewModeButtonStyle(viewMode === "risk")}>
             Coup Risk
           </button>
         </div>
 
-        {/* Filters - only show event-specific ones in Events mode */}
+        {/* Filters — events mode only */}
         {viewMode === "events" && (
           <>
             <FilterDropdown label="Status">
-              <div className="flex flex-col gap-0.5 px-2">
+              <div className={css({ display: "flex", flexDirection: "column", gap: "0.5", paddingInline: "2" })}>
                 {OUTCOMES.map(({ value, label }) => (
-                  <FilterCheckboxItem
-                    key={value}
-                    label={label}
-                    checked={selectedOutcomes.includes(value)}
-                    onChange={() => toggleOutcome(value)}
-                  />
+                  <FilterCheckboxItem key={value} label={label} checked={selectedOutcomes.includes(value)} onChange={() => toggleOutcome(value)} />
                 ))}
               </div>
             </FilterDropdown>
             <FilterDropdown label="Date">
-              <div className="flex max-h-48 flex-col gap-0.5 overflow-y-auto px-2 py-1">
+              <div className={css({ display: "flex", maxHeight: "48", flexDirection: "column", gap: "0.5", overflowY: "auto", paddingInline: "2", paddingBlock: "1" })}>
                 {DECADES.map((decade) => (
-                  <FilterCheckboxItem
-                    key={decade}
-                    label={`${decade}s`}
-                    checked={selectedDecades.includes(decade)}
-                    onChange={() => toggleDecade(decade)}
-                  />
+                  <FilterCheckboxItem key={decade} label={`${decade}s`} checked={selectedDecades.includes(decade)} onChange={() => toggleDecade(decade)} />
                 ))}
               </div>
             </FilterDropdown>
             <FilterDropdown label="Region">
-              <div className="flex max-h-48 flex-col gap-0.5 overflow-y-auto px-2 py-1">
+              <div className={css({ display: "flex", maxHeight: "48", flexDirection: "column", gap: "0.5", overflowY: "auto", paddingInline: "2", paddingBlock: "1" })}>
                 {regions.length === 0 ? (
-                  <span className="px-2 py-2 text-sm text-gray-500">
-                    No regions in data
-                  </span>
+                  <span className={css({ paddingInline: "2", paddingBlock: "2", fontSize: "sm", color: "var(--colors-text-subtle)" })}>No regions in data</span>
                 ) : (
                   regions.map((region) => (
-                    <FilterCheckboxItem
-                      key={region}
-                      label={region}
-                      checked={selectedRegions.includes(region)}
-                      onChange={() => toggleRegion(region)}
-                    />
+                    <FilterCheckboxItem key={region} label={region} checked={selectedRegions.includes(region)} onChange={() => toggleRegion(region)} />
                   ))
                 )}
               </div>
             </FilterDropdown>
             <FilterDropdown label="Tags">
-              <div className="flex max-h-48 flex-col gap-0.5 overflow-y-auto px-2 py-1">
+              <div className={css({ display: "flex", maxHeight: "48", flexDirection: "column", gap: "0.5", overflowY: "auto", paddingInline: "2", paddingBlock: "1" })}>
                 {tags.length === 0 ? (
-                  <span className="px-2 py-2 text-sm text-gray-500">
-                    No tags in data
-                  </span>
+                  <span className={css({ paddingInline: "2", paddingBlock: "2", fontSize: "sm", color: "var(--colors-text-subtle)" })}>No tags in data</span>
                 ) : (
                   tags.map((tag) => (
-                    <FilterCheckboxItem
-                      key={tag}
-                      label={tag}
-                      checked={selectedTags.includes(tag)}
-                      onChange={() => toggleTag(tag)}
-                    />
+                    <FilterCheckboxItem key={tag} label={tag} checked={selectedTags.includes(tag)} onChange={() => toggleTag(tag)} />
                   ))
                 )}
               </div>

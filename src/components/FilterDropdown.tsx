@@ -1,11 +1,52 @@
 import { useState, useRef, useEffect } from "react";
 import { ChevronDown } from "lucide-react";
+import { css, cx } from "styled-system/css";
 
 export interface FilterDropdownProps {
   label: string;
   children: React.ReactNode;
   className?: string;
 }
+
+const triggerStyle = css({
+  display: "flex",
+  minHeight: "44px",
+  alignItems: "center",
+  gap: "1.5",
+  borderRadius: "lg",
+  borderWidth: "1px",
+  borderStyle: "solid",
+  borderColor: "var(--colors-border-strong)",
+  backgroundColor: "var(--colors-bg-panel)",
+  paddingInline: "3",
+  paddingBlock: "2.5",
+  fontSize: "sm",
+  color: "var(--colors-text-secondary)",
+  transition: "colors",
+  cursor: "pointer",
+  _hover: { backgroundColor: "var(--colors-bg-hover)" },
+});
+
+const menuStyle = css({
+  position: "absolute",
+  left: "0",
+  right: "0",
+  top: "100%",
+  zIndex: "50",
+  marginTop: "1",
+  minWidth: "0",
+  borderRadius: "lg",
+  borderWidth: "1px",
+  borderStyle: "solid",
+  borderColor: "var(--colors-border-default)",
+  backgroundColor: "var(--colors-bg-panel)",
+  paddingBlock: "2",
+  boxShadow: "var(--shadows-xl)",
+  md: {
+    left: "auto",
+    minWidth: "180px",
+  },
+});
 
 export default function FilterDropdown({
   label,
@@ -26,19 +67,25 @@ export default function FilterDropdown({
   }, [open]);
 
   return (
-    <div className={`relative shrink-0 ${className}`} ref={ref}>
+    <div className={cx(css({ position: "relative", flexShrink: "0" }), className)} ref={ref}>
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className="flex min-h-[44px] items-center gap-1.5 rounded-lg border border-gray-600 bg-gray-800/80 px-3 py-2.5 text-sm text-gray-200 transition-colors hover:bg-gray-700/80"
+        className={triggerStyle}
       >
         {label}
         <ChevronDown
-          className={`h-4 w-4 shrink-0 transition-transform ${open ? "rotate-180" : ""}`}
+          className={css({
+            height: "4",
+            width: "4",
+            flexShrink: "0",
+            transition: "transform",
+          })}
+          style={{ transform: open ? "rotate(180deg)" : "rotate(0deg)" }}
         />
       </button>
       {open && (
-        <div className="absolute left-0 right-0 top-full z-50 mt-1 min-w-0 rounded-lg border border-gray-700 bg-[#1a1d26] py-2 shadow-xl md:left-auto md:right-0 md:min-w-[180px]">
+        <div className={menuStyle}>
           {children}
         </div>
       )}
