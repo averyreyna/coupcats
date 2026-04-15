@@ -1,5 +1,7 @@
 import type { CoupOutcome } from "../types/coup";
-import { OUTCOME_COLORS, OUTCOME_LABELS } from "./colors";
+import { outcomeColors } from "../design-system/tokens";
+import { OUTCOME_LABELS } from "./colors";
+import { badgeRecipe, dotRecipe } from "../design-system/recipes/badge";
 
 export interface OutcomeStyle {
   color: string;
@@ -10,34 +12,33 @@ export interface OutcomeStyle {
 
 export const OUTCOME_STYLES: Record<CoupOutcome, OutcomeStyle> = {
   successful: {
-    color: OUTCOME_COLORS.successful,
+    color: outcomeColors.successful,
     label: OUTCOME_LABELS.successful,
-    badgeClass: "bg-emerald-500/20 text-emerald-300",
-    dotClass: "bg-emerald-400",
+    badgeClass: badgeRecipe({ outcome: "successful" }),
+    dotClass: dotRecipe({ outcome: "successful" }),
   },
   failed: {
-    color: OUTCOME_COLORS.failed,
+    color: outcomeColors.failed,
     label: OUTCOME_LABELS.failed,
-    badgeClass: "bg-red-500/20 text-red-300",
-    dotClass: "bg-red-400",
+    badgeClass: badgeRecipe({ outcome: "failed" }),
+    dotClass: dotRecipe({ outcome: "failed" }),
   },
   attempted: {
-    color: OUTCOME_COLORS.attempted,
+    color: outcomeColors.attempted,
     label: OUTCOME_LABELS.attempted,
-    badgeClass: "bg-amber-500/20 text-amber-300",
-    dotClass: "bg-amber-400",
+    badgeClass: badgeRecipe({ outcome: "attempted" }),
+    dotClass: dotRecipe({ outcome: "attempted" }),
   },
   plot: {
-    color: OUTCOME_COLORS.plot,
+    color: outcomeColors.plot,
     label: OUTCOME_LABELS.plot,
-    badgeClass: "bg-slate-500/20 text-slate-300",
-    dotClass: "bg-slate-400",
+    badgeClass: badgeRecipe({ outcome: "plot" }),
+    dotClass: dotRecipe({ outcome: "plot" }),
   },
   alleged: {
-    color: OUTCOME_COLORS.alleged,
+    color: outcomeColors.alleged,
     label: OUTCOME_LABELS.alleged,
-    badgeClass: "bg-slate-500/20 text-slate-300",
-    dotClass: "bg-slate-400",
+    badgeClass: badgeRecipe({ outcome: "alleged" }),
+    dotClass: dotRecipe({ outcome: "alleged" }),
   },
 };
-

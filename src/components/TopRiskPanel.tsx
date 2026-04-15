@@ -51,6 +51,7 @@ export default function TopRiskPanel({
       <div className="max-h-96 space-y-2 overflow-y-auto pr-1">
         {visibleCountries.map((c, i) => {
           const isSelected = selectedCountry === c.country;
+          const prob = c.prediction_prob ?? c.yhat ?? 0;
 
           return (
             <button
@@ -70,14 +71,14 @@ export default function TopRiskPanel({
                   <span className="font-medium text-white">{c.country}</span>
                 </div>
 
-                <span className={`font-semibold ${getRiskColor(c.prediction_prob)}`}>
-                  {(c.prediction_prob * 100).toFixed(2)}%
+                <span className={`font-semibold ${getRiskColor(prob)}`}>
+                  {(prob * 100).toFixed(2)}%
                 </span>
               </div>
 
               <div className="flex items-center justify-between text-sm">
-                <span className={`${getRiskColor(c.prediction_prob)}`}>
-                  {getRiskLabel(c.prediction_prob)}
+                <span className={`${getRiskColor(prob)}`}>
+                  {getRiskLabel(prob)}
                 </span>
 
                 <span className="text-gray-500">

@@ -1,8 +1,38 @@
+import { css } from "styled-system/css";
+
 export interface FilterCheckboxItemProps {
   label: string;
   checked: boolean;
   onChange: () => void;
 }
+
+const labelStyle = css({
+  display: "flex",
+  cursor: "pointer",
+  alignItems: "center",
+  gap: "1.5",
+  minHeight: "28px",
+  borderRadius: "md",
+  paddingInline: "2",
+  paddingBlock: "0.75",
+  transition: "background-color 160ms ease",
+  _hover: { backgroundColor: "var(--colors-bg-hover)" },
+});
+
+const checkboxStyle = css({
+  height: "3.5",
+  width: "3.5",
+  borderRadius: "sm",
+  accentColor: "var(--colors-accent-default)",
+  cursor: "pointer",
+  flexShrink: "0",
+});
+
+const textStyle = css({
+  fontSize: "sm",
+  lineHeight: "1.25",
+  color: "var(--colors-text-secondary)",
+});
 
 export default function FilterCheckboxItem({
   label,
@@ -10,15 +40,14 @@ export default function FilterCheckboxItem({
   onChange,
 }: FilterCheckboxItemProps) {
   return (
-    <label className="flex cursor-pointer items-center gap-2 rounded px-2 py-1.5 hover:bg-gray-800">
+    <label className={labelStyle}>
       <input
         type="checkbox"
         checked={checked}
         onChange={onChange}
-        className="h-4 w-4 rounded border-gray-600 bg-gray-800 text-amber-500 focus:ring-amber-500/50"
+        className={checkboxStyle}
       />
-      <span className="text-sm text-gray-200">{label}</span>
+      <span className={textStyle}>{label}</span>
     </label>
   );
 }
-
