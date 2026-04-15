@@ -10,23 +10,27 @@ const labelStyle = css({
   display: "flex",
   cursor: "pointer",
   alignItems: "center",
-  gap: "2",
-  borderRadius: "sm",
+  gap: "1.5",
+  minHeight: "28px",
+  borderRadius: "md",
   paddingInline: "2",
-  paddingBlock: "1.5",
+  paddingBlock: "0.75",
+  transition: "background-color 160ms ease",
   _hover: { backgroundColor: "var(--colors-bg-hover)" },
 });
 
 const checkboxStyle = css({
-  height: "4",
-  width: "4",
+  height: "3.5",
+  width: "3.5",
   borderRadius: "sm",
   accentColor: "var(--colors-accent-default)",
   cursor: "pointer",
+  flexShrink: "0",
 });
 
 const textStyle = css({
   fontSize: "sm",
+  lineHeight: "1.25",
   color: "var(--colors-text-secondary)",
 });
 

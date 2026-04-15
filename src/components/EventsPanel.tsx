@@ -56,9 +56,9 @@ const sortButtonStyle = css({
   justifyContent: "center",
   gap: "1",
   borderRadius: "sm",
-  borderWidth: "1px",
+  borderWidth: "0.5px",
   borderStyle: "solid",
-  borderColor: "var(--colors-border-strong)",
+  borderColor: "var(--colors-border-default)",
   backgroundColor: "var(--colors-bg-muted)",
   paddingInline: "2",
   paddingBlock: "1.5",
@@ -106,6 +106,7 @@ const eventRowStyle = css({
   paddingInline: "4",
   paddingBlock: "3.5",
   textAlign: "left",
+  border: "none",
   cursor: "pointer",
   _hover: { backgroundColor: "var(--colors-bg-hover)" },
 });
@@ -187,7 +188,7 @@ export default function EventsPanel({ allEvents, mapRef }: EventsPanelProps) {
             <p className={css({ fontSize: "xs" })}>Try adjusting search or filters.</p>
           </div>
         ) : (
-          <ul className={css({ "& > li + li": { borderTopWidth: "1px", borderTopStyle: "solid", borderTopColor: "var(--colors-border-default)" } })}>
+          <ul className={css({ listStyle: "none", margin: "0", padding: "0", "& > li + li": { borderTopWidth: "1px", borderTopStyle: "solid", borderTopColor: "var(--colors-border-default)" } })}>
             {sortedEvents.map((event) => {
               const style = OUTCOME_STYLES[event.outcome];
               return (

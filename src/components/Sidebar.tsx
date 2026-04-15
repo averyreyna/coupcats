@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Globe, List, Filter, Info, Settings, PanelLeftClose, PanelLeft } from "lucide-react";
+import { Globe, List, Filter, Info, PanelLeftClose, PanelLeft } from "lucide-react";
 import { css } from "styled-system/css";
 
 export type NavId = "home" | "events" | "filters" | "about";
@@ -16,18 +16,6 @@ export interface SidebarProps {
   onNavChange: (id: NavId) => void;
 }
 
-const logoIconStyle = css({
-  display: "flex",
-  height: "9",
-  width: "9",
-  flexShrink: "0",
-  alignItems: "center",
-  justifyContent: "center",
-  borderRadius: "lg",
-  backgroundColor: "var(--colors-accent-muted)",
-  color: "var(--colors-accent-text)",
-});
-
 export default function Sidebar({ activeNav, onNavChange }: SidebarProps) {
   const [collapsed, setCollapsed] = useState(false);
 
@@ -41,10 +29,11 @@ export default function Sidebar({ activeNav, onNavChange }: SidebarProps) {
         flexDirection: "row",
         alignItems: "center",
         justifyContent: "space-around",
-        borderTopWidth: "1px",
+        borderTopWidth: "0.5px",
         borderTopStyle: "solid",
         borderTopColor: "var(--colors-border-default)",
         backgroundColor: "var(--colors-bg-panel)",
+        boxShadow: "0 -4px 16px color-mix(in srgb, #000 6%, transparent)",
         paddingBottom: "env(safe-area-inset-bottom)",
         transition: "width 300ms ease-in-out",
         md: {
@@ -52,19 +41,20 @@ export default function Sidebar({ activeNav, onNavChange }: SidebarProps) {
           flexDirection: "column",
           justifyContent: "flex-start",
           borderTopWidth: "0",
-          borderRightWidth: "1px",
+          borderRightWidth: "0.5px",
           borderRightStyle: "solid",
           borderRightColor: "var(--colors-border-default)",
           paddingBottom: "0",
           width: collapsed ? "72px" : "280px",
+          boxShadow: "none",
         },
       })}
     >
       {/* Mobile bottom nav */}
-      <div className={css({ display: "flex", flex: "1", alignItems: "center", justifyContent: "space-around", gap: "0", md: { display: "none" } })}>
-        <div className={logoIconStyle}>
-          <Globe className={css({ height: "5", width: "5" })} />
-        </div>
+      <div className={css({ display: "flex", flex: "1", alignItems: "center", justifyContent: "space-between", gap: "1.5", paddingInline: "2", md: { display: "none" } })}>
+        <span className={css({ fontSize: "sm", fontWeight: "semibold", color: "var(--colors-text-primary)", paddingInline: "1" })}>
+          CoupCats
+        </span>
         {NAV_ITEMS.map(({ id, icon: Icon, label }) => {
           const isActive = activeNav === id;
           return (
@@ -80,9 +70,15 @@ export default function Sidebar({ activeNav, onNavChange }: SidebarProps) {
                 alignItems: "center",
                 justifyContent: "center",
                 borderRadius: "lg",
+                borderWidth: "0.5px",
+                borderStyle: "solid",
+                borderColor: isActive ? "var(--colors-accent-default)" : "var(--colors-border-default)",
+                backgroundColor: isActive
+                  ? "color-mix(in srgb, var(--colors-accent-muted) 65%, transparent)"
+                  : "transparent",
                 cursor: "pointer",
                 color: isActive ? "var(--colors-accent-text)" : "var(--colors-text-muted)",
-                _hover: { backgroundColor: "var(--colors-bg-hover)" },
+                _hover: { backgroundColor: "var(--colors-bg-hover)", color: "var(--colors-text-primary)" },
               })}
               title={label}
             >
@@ -95,19 +91,16 @@ export default function Sidebar({ activeNav, onNavChange }: SidebarProps) {
       {/* Desktop sidebar */}
       <div className={css({ display: "none", md: { display: "flex", height: "full", width: "full", flexDirection: "column" } })}>
         {/* Logo row */}
-        <div className={css({ display: "flex", minHeight: "56px", alignItems: "center", gap: "3", borderBottomWidth: "1px", borderBottomStyle: "solid", borderBottomColor: "var(--colors-border-default)", paddingInline: "3" })}>
-          <div className={logoIconStyle}>
-            <Globe className={css({ height: "5", width: "5" })} />
-          </div>
+        <div className={css({ display: "flex", minHeight: "56px", alignItems: "center", justifyContent: collapsed ? "center" : "flex-start", borderBottomWidth: "0.5px", borderBottomStyle: "solid", borderBottomColor: "var(--colors-border-default)", paddingInline: "3.5" })}>
           {!collapsed && (
             <span className={css({ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontSize: "sm", fontWeight: "semibold", color: "var(--colors-text-primary)" })}>
-              CoupView
+              CoupCats
             </span>
           )}
         </div>
 
         {/* Nav items */}
-        <nav className={css({ display: "flex", flex: "1", flexDirection: "column", gap: "0.5", overflow: "hidden", paddingBlock: "2" })}>
+        <nav className={css({ display: "flex", flex: "1", flexDirection: "column", gap: "1", overflow: "hidden", paddingBlock: "2.5", paddingInline: collapsed ? "1" : "2" })}>
           {NAV_ITEMS.map(({ id, icon: Icon, label }) => {
             const isActive = activeNav === id;
             return (
@@ -119,16 +112,28 @@ export default function Sidebar({ activeNav, onNavChange }: SidebarProps) {
                   display: "flex",
                   alignItems: "center",
                   gap: "3",
+                  minHeight: "40px",
                   paddingInline: collapsed ? "0" : "3",
-                  paddingBlock: "2.5",
+                  paddingBlock: "2",
                   justifyContent: collapsed ? "center" : "flex-start",
                   textAlign: "left",
                   cursor: "pointer",
-                  borderLeftWidth: "2px",
+                  border: "none",
+                  borderLeftWidth: "1px",
                   borderLeftStyle: "solid",
                   borderLeftColor: isActive ? "var(--colors-accent-default)" : "transparent",
-                  backgroundColor: isActive ? "var(--colors-accent-muted)" : "transparent",
-                  _hover: { backgroundColor: "var(--colors-bg-hover)", transform: "scale(1.02)" },
+                  borderRadius: "md",
+                  backgroundColor: isActive
+                    ? "color-mix(in srgb, var(--colors-accent-muted) 62%, transparent)"
+                    : "transparent",
+                  color: isActive ? "var(--colors-text-primary)" : "var(--colors-text-secondary)",
+                  transition: "background-color 160ms ease, color 160ms ease, border-color 160ms ease",
+                  _hover: {
+                    backgroundColor: isActive
+                      ? "color-mix(in srgb, var(--colors-accent-muted) 75%, transparent)"
+                      : "var(--colors-bg-hover)",
+                    color: "var(--colors-text-primary)",
+                  },
                 })}
                 title={collapsed ? label : undefined}
               >
@@ -144,19 +149,11 @@ export default function Sidebar({ activeNav, onNavChange }: SidebarProps) {
         </nav>
 
         {/* Footer */}
-        <div className={css({ borderTopWidth: "1px", borderTopStyle: "solid", borderTopColor: "var(--colors-border-default)", paddingBlock: "2" })}>
-          <button
-            type="button"
-            className={css({ display: "flex", width: "full", alignItems: "center", gap: "3", paddingInline: "3", paddingBlock: "2.5", textAlign: "left", cursor: "pointer", color: "var(--colors-text-muted)", _hover: { backgroundColor: "var(--colors-bg-hover)", color: "var(--colors-text-secondary)", transform: "scale(1.02)" } })}
-            title={collapsed ? "Settings" : undefined}
-          >
-            <Settings className={css({ height: "5", width: "5", flexShrink: "0" })} />
-            {!collapsed && <span className={css({ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontSize: "sm" })}>Settings</span>}
-          </button>
+        <div className={css({ borderTopWidth: "0.5px", borderTopStyle: "solid", borderTopColor: "var(--colors-border-default)", paddingBlock: "2", paddingInline: collapsed ? "1" : "2" })}>
           <button
             type="button"
             onClick={() => setCollapsed((c) => !c)}
-            className={css({ display: "flex", width: "full", alignItems: "center", justifyContent: "center", gap: "3", paddingInline: "3", paddingBlock: "2.5", cursor: "pointer", color: "var(--colors-text-muted)", _hover: { backgroundColor: "var(--colors-bg-hover)", color: "var(--colors-text-secondary)" } })}
+            className={css({ display: "flex", width: "full", minHeight: "40px", alignItems: "center", justifyContent: "center", gap: "3", border: "none", borderRadius: "md", paddingInline: "3", paddingBlock: "2", cursor: "pointer", color: "var(--colors-text-muted)", transition: "background-color 160ms ease, color 160ms ease", _hover: { backgroundColor: "var(--colors-bg-hover)", color: "var(--colors-text-secondary)" } })}
             title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
           >
             {collapsed ? (

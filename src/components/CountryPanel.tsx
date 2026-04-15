@@ -11,13 +11,14 @@ export interface CountryPanelProps {
 const panelStyle = css({
   display: "flex",
   width: "full",
+  minWidth: "0",
   flexShrink: "0",
   flexDirection: "column",
   borderLeftWidth: "1px",
   borderLeftStyle: "solid",
   borderLeftColor: "var(--colors-border-default)",
   backgroundColor: "var(--colors-bg-panel)",
-  md: { width: "320px" },
+  md: { width: "320px", minWidth: "320px", flexBasis: "320px" },
 });
 
 const headerStyle = css({

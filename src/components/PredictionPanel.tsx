@@ -101,7 +101,8 @@ export default function PredictionPanel({ prediction, onClose }: Props) {
       right: "0",
       top: "0",
       height: "full",
-      width: "80",
+      width: "full",
+      maxWidth: "100vw",
       backgroundColor: "var(--colors-bg-panel)",
       borderLeftWidth: "1px",
       borderLeftStyle: "solid",
@@ -110,6 +111,10 @@ export default function PredictionPanel({ prediction, onClose }: Props) {
       display: "flex",
       flexDirection: "column",
       boxShadow: "var(--shadows-xl)",
+      md: {
+        width: "320px",
+        minWidth: "320px",
+      },
     })}>
       {/* Header */}
       <div className={css({ display: "flex", alignItems: "flex-start", justifyContent: "space-between", padding: "4", borderBottomWidth: "1px", borderBottomStyle: "solid", borderBottomColor: "var(--colors-border-default)" })}>

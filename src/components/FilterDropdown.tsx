@@ -10,21 +10,29 @@ export interface FilterDropdownProps {
 
 const triggerStyle = css({
   display: "flex",
-  minHeight: "44px",
+  minHeight: "40px",
   alignItems: "center",
-  gap: "1.5",
+  gap: "2",
   borderRadius: "lg",
   borderWidth: "1px",
   borderStyle: "solid",
-  borderColor: "var(--colors-border-strong)",
-  backgroundColor: "var(--colors-bg-panel)",
-  paddingInline: "3",
-  paddingBlock: "2.5",
+  borderColor: "var(--colors-border-default)",
+  backgroundColor: "color-mix(in srgb, var(--colors-bg-panel) 94%, var(--colors-bg-muted))",
+  paddingInline: "3.5",
+  paddingBlock: "2",
   fontSize: "sm",
   color: "var(--colors-text-secondary)",
-  transition: "colors",
+  transition: "background-color 160ms ease, color 160ms ease, border-color 160ms ease",
   cursor: "pointer",
-  _hover: { backgroundColor: "var(--colors-bg-hover)" },
+  _hover: {
+    backgroundColor: "var(--colors-bg-hover)",
+    color: "var(--colors-text-primary)",
+  },
+  _focusVisible: {
+    outline: "none",
+    borderColor: "var(--colors-accent-default)",
+    boxShadow: "0 0 0 3px color-mix(in srgb, var(--colors-accent-default) 16%, transparent)",
+  },
 });
 
 const menuStyle = css({
@@ -39,12 +47,12 @@ const menuStyle = css({
   borderWidth: "1px",
   borderStyle: "solid",
   borderColor: "var(--colors-border-default)",
-  backgroundColor: "var(--colors-bg-panel)",
-  paddingBlock: "2",
-  boxShadow: "var(--shadows-xl)",
+  backgroundColor: "color-mix(in srgb, var(--colors-bg-panel) 96%, var(--colors-bg-muted))",
+  paddingBlock: "2.5",
+  boxShadow: "0 8px 22px color-mix(in srgb, #000 10%, transparent)",
   md: {
     left: "auto",
-    minWidth: "180px",
+    minWidth: "196px",
   },
 });
 

@@ -113,8 +113,8 @@ export default function FiltersPanel({
       </div>
 
       {/* Content */}
-      <div className={css({ flex: "1", overflowY: "auto", paddingInline: "4", paddingBlock: "4" })}>
-        <div className={css({ display: "flex", flexDirection: "column", gap: "6" })}>
+      <div className={css({ flex: "1", overflowY: "auto", paddingInline: "4", paddingBlock: "3" })}>
+        <div className={css({ display: "flex", flexDirection: "column", gap: "4.5" })}>
           {/* Timeline */}
           <div>
             <div className={css({ marginBottom: "3", display: "flex", alignItems: "center", justifyContent: "space-between" })}>
@@ -195,7 +195,7 @@ export default function FiltersPanel({
           {/* Status */}
           <div>
             <h3 className={sectionHeadingStyle}>Status</h3>
-            <div className={css({ display: "flex", flexDirection: "column", gap: "1" })}>
+            <div className={css({ display: "flex", flexDirection: "column", gap: "0.5" })}>
               {OUTCOMES.map(({ value, label }) => (
                 <FilterCheckboxItem
                   key={value}
@@ -210,7 +210,7 @@ export default function FiltersPanel({
           {/* Date */}
           <div>
             <h3 className={sectionHeadingStyle}>Date</h3>
-            <div className={css({ display: "flex", flexDirection: "column", gap: "1" })}>
+            <div className={css({ display: "flex", flexDirection: "column", gap: "0.5" })}>
               {DECADES.map((decade) => (
                 <FilterCheckboxItem
                   key={decade}
@@ -225,7 +225,7 @@ export default function FiltersPanel({
           {/* Region */}
           <div>
             <h3 className={sectionHeadingStyle}>Region</h3>
-            <div className={css({ display: "flex", flexDirection: "column", gap: "1" })}>
+            <div className={css({ display: "flex", flexDirection: "column", gap: "0.5" })}>
               {regions.map((region) => (
                 <FilterCheckboxItem
                   key={region}
@@ -241,7 +241,7 @@ export default function FiltersPanel({
           {tags.length > 0 && (
             <div>
               <h3 className={sectionHeadingStyle}>Tags</h3>
-              <div className={css({ display: "flex", flexDirection: "column", gap: "1" })}>
+              <div className={css({ display: "flex", flexDirection: "column", gap: "0.5" })}>
                 {tags.map((tag) => (
                   <FilterCheckboxItem
                     key={tag}

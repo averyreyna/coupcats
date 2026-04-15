@@ -18,28 +18,26 @@ export interface ToolbarProps {
 }
 
 const toolbarStyle = css({
-  position: "absolute",
-  left: "0",
-  right: "0",
-  top: "0",
-  zIndex: "10",
+  position: "relative",
+  zIndex: "20",
   display: "flex",
   flexDirection: "column",
-  gap: "2",
+  gap: "2.5",
   borderBottomWidth: "1px",
   borderBottomStyle: "solid",
   borderBottomColor: "var(--colors-border-default)",
-  backgroundColor: "color-mix(in srgb, var(--colors-bg-app) 85%, transparent)",
-  backdropFilter: "blur(8px)",
-  paddingInline: "3",
-  paddingBlock: "3",
-  paddingTop: "max(0.75rem, env(safe-area-inset-top))",
+  backgroundColor: "var(--colors-bg-app)",
+  backdropFilter: "blur(10px)",
+  paddingInline: "3.5",
+  paddingBlock: "2",
+  paddingTop: "max(0.5rem, env(safe-area-inset-top))",
   md: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    gap: "4",
-    paddingInline: "4",
+    gap: "3",
+    paddingInline: "4.5",
+    paddingBlock: "2",
   },
 });
 
@@ -59,23 +57,23 @@ const searchInnerStyle = css({
 });
 
 const searchInputStyle = css({
-  minHeight: "44px",
+  minHeight: "42px",
   width: "full",
   borderRadius: "lg",
   borderWidth: "1px",
   borderStyle: "solid",
-  borderColor: "var(--colors-border-strong)",
-  backgroundColor: "var(--colors-bg-panel)",
-  paddingBlock: "2.5",
+  borderColor: "var(--colors-border-default)",
+  backgroundColor: "color-mix(in srgb, var(--colors-bg-panel) 94%, var(--colors-bg-muted))",
+  paddingBlock: "2",
   paddingLeft: "9",
-  paddingRight: "3",
+  paddingRight: "3.5",
   fontSize: "sm",
   color: "var(--colors-text-primary)",
   _placeholder: { color: "var(--colors-text-subtle)" },
   _focus: {
     outline: "none",
     borderColor: "var(--colors-accent-default)",
-    boxShadow: "0 0 0 3px color-mix(in srgb, #FF6A00 15%, transparent)",
+    boxShadow: "0 0 0 3px color-mix(in srgb, var(--colors-accent-default) 18%, transparent)",
   },
 });
 
@@ -86,7 +84,7 @@ const filtersRowStyle = css({
   alignItems: "center",
   gap: "2",
   overflowX: "auto",
-  paddingBottom: "1",
+  paddingBottom: "0.5",
   md: { overflow: "visible", paddingBottom: "0" },
 });
 
@@ -97,30 +95,36 @@ const toggleGroupStyle = css({
   borderRadius: "lg",
   borderWidth: "1px",
   borderStyle: "solid",
-  borderColor: "var(--colors-border-strong)",
-  backgroundColor: "var(--colors-bg-muted)",
+  borderColor: "var(--colors-border-default)",
+  backgroundColor: "color-mix(in srgb, var(--colors-bg-muted) 92%, var(--colors-bg-panel))",
   padding: "1",
 });
 
 function viewModeButtonStyle(active: boolean) {
   return css({
-    paddingInline: "3",
-    paddingBlock: "1.5",
-    borderRadius: "sm",
+    minHeight: "34px",
+    paddingInline: "3.5",
+    paddingBlock: "1",
+    borderRadius: "md",
     fontSize: "sm",
     fontWeight: "medium",
     cursor: "pointer",
+    transition: "all 160ms ease",
     ...(active
       ? {
-          backgroundColor: "var(--colors-accent-muted)",
+          backgroundColor: "color-mix(in srgb, var(--colors-accent-muted) 70%, var(--colors-bg-panel))",
           color: "var(--colors-accent-text)",
           borderWidth: "1px",
           borderStyle: "solid",
-          borderColor: "color-mix(in srgb, #FF6A00 30%, transparent)",
+          borderColor: "color-mix(in srgb, var(--colors-accent-default) 28%, transparent)",
+          boxShadow: "0 1px 2px color-mix(in srgb, #000 10%, transparent)",
         }
       : {
           color: "var(--colors-text-muted)",
-          _hover: { color: "var(--colors-text-secondary)" },
+          _hover: {
+            color: "var(--colors-text-secondary)",
+            backgroundColor: "color-mix(in srgb, var(--colors-bg-hover) 80%, transparent)",
+          },
         }),
   });
 }

@@ -8,41 +8,42 @@ const OUTCOMES: CoupOutcome[] = ["successful", "failed"];
 const legendStyle = css({
   position: "absolute",
   bottom: "20",
-  right: "max(1rem, env(safe-area-inset-right))",
+  left: "max(1rem, env(safe-area-inset-left))",
   zIndex: "10",
   borderRadius: "lg",
   borderWidth: "1px",
   borderStyle: "solid",
   borderColor: "var(--colors-border-default)",
-  backgroundColor: "var(--colors-bg-panel)",
-  paddingInline: "3",
-  paddingBlock: "2",
-  boxShadow: "var(--shadows-lg)",
-  backdropFilter: "blur(4px)",
+  backgroundColor: "color-mix(in srgb, var(--colors-bg-panel) 92%, var(--colors-bg-muted))",
+  paddingInline: "3.5",
+  paddingBlock: "2.5",
+  boxShadow: "0 8px 22px color-mix(in srgb, #000 12%, transparent)",
+  backdropFilter: "blur(8px)",
   md: {
     bottom: "4",
-    right: "4",
+    left: "4",
   },
 });
 
 const labelStyle = css({
-  marginBottom: "1.5",
+  marginBottom: "2",
   fontSize: "xs",
-  fontWeight: "medium",
+  fontWeight: "semibold",
   color: "var(--colors-text-muted)",
 });
 
 const rowStyle = css({
   display: "flex",
   alignItems: "center",
-  gap: "2",
+  gap: "2.5",
   fontSize: "xs",
   color: "var(--colors-text-secondary)",
+  lineHeight: "1.35",
 });
 
 const swatchStyle = css({
-  height: "2.5",
-  width: "2.5",
+  height: "3",
+  width: "3",
   flexShrink: "0",
   borderRadius: "sm",
   borderWidth: "1px",
