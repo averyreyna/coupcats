@@ -1,5 +1,6 @@
 import { css } from "styled-system/css";
-import { OUTCOME_COLORS, OUTCOME_LABELS, PREDICTION_COLOR_STOPS, PREDICTION_NULL_COLOR } from "../lib/colors";
+import { OUTCOME_COLORS, OUTCOME_LABELS, PREDICTION_NULL_COLOR } from "../lib/colors";
+import type { RiskBucketBound } from "../lib/riskBuckets";
 import type { CoupOutcome } from "../types/coup";
 import { useFilterStore } from "../store/useFilterStore";
 
@@ -51,7 +52,29 @@ const swatchStyle = css({
   borderColor: "var(--colors-border-strong)",
 });
 
-export default function MapLegend() {
+function formatPercent(value: number): string {
+  const pct = value * 100;
+  if (pct >= 10) return `${pct.toFixed(1)}%`;
+  if (pct >= 1) return `${pct.toFixed(2)}%`;
+  if (pct >= 0.1) return `${pct.toFixed(3)}%`;
+  return `${pct.toFixed(4)}%`;
+}
+
+function riskRangeLabel(bound: RiskBucketBound): string {
+  if (bound.min == null && bound.maxExclusive != null) {
+    return `< ${formatPercent(bound.maxExclusive)} (${bound.label})`;
+  }
+  if (bound.min != null && bound.maxExclusive == null) {
+    return `>= ${formatPercent(bound.min)} (${bound.label})`;
+  }
+  return `${formatPercent(bound.min ?? 0)} - ${formatPercent(bound.maxExclusive ?? 0)} (${bound.label})`;
+}
+
+interface MapLegendProps {
+  riskBucketBounds: RiskBucketBound[];
+}
+
+export default function MapLegend({ riskBucketBounds }: MapLegendProps) {
   const viewMode = useFilterStore((s) => s.viewMode);
 
   if (viewMode === "risk") {
@@ -59,10 +82,10 @@ export default function MapLegend() {
       <div className={legendStyle}>
         <div className={labelStyle}>Coup Risk</div>
         <div className={css({ display: "flex", flexDirection: "column", gap: "1" })}>
-          {PREDICTION_COLOR_STOPS.map(({ color, label }) => (
-            <div key={label} className={rowStyle}>
-              <span className={swatchStyle} style={{ backgroundColor: color }} />
-              {label}
+          {riskBucketBounds.map((bound) => (
+            <div key={bound.key} className={rowStyle}>
+              <span className={swatchStyle} style={{ backgroundColor: bound.color }} />
+              {riskRangeLabel(bound)}
             </div>
           ))}
           <div className={rowStyle}>

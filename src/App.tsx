@@ -15,6 +15,7 @@ import { useFilterStore } from "./store/useFilterStore";
 import { OUTCOME_COLORS, PREDICTION_NULL_COLOR } from "./lib/colors";
 import { getCoupsFeatureCollection, getAllCoupEvents, getPredictionFeatureCollection, buildPredictionProbMap, COW_TO_ADMIN_ALIASES } from "./lib/coupData";
 import { buildMapFilterExpression } from "./lib/filterHelpers";
+import { computeRiskThresholds, getRiskBucketBounds } from "./lib/riskBuckets";
 import { useMapHover } from "./hooks/useMapHover";
 import { useEscapeToClearSelection } from "./hooks/useEscapeToClearSelection";
 import { useClearSelectionOnMapClick } from "./hooks/useClearSelectionOnMapClick";
@@ -51,27 +52,37 @@ const circleLayerPaint: CircleLayerSpecification["paint"] = {
 };
 
 
-const countryHeatmapLayerStyle: Omit<FillLayerSpecification, "source"> = {
-  id: "country-risk-fill",
-  type: "fill",
-  paint: {
-    "fill-color": [
-      "case",
-      ["==", ["get", "prediction_prob"], null as unknown as string],
-      PREDICTION_NULL_COLOR,
-      [
-        "interpolate",
-        ["linear"],
-        ["get", "prediction_prob"],
-        0,    "#22c55e",
-        0.05, "#eab308",
-        0.15, "#f97316",
-        0.30, "#ef4444",
+function buildCountryHeatmapLayerStyle(
+  moderateMin: number,
+  elevatedMin: number,
+  highMin: number,
+): Omit<FillLayerSpecification, "source"> {
+  return {
+    id: "country-risk-fill",
+    type: "fill",
+    paint: {
+      "fill-color": [
+        "case",
+        ["==", ["get", "prediction_prob"], null as unknown as string],
+        PREDICTION_NULL_COLOR,
+        [
+          "interpolate",
+          ["linear"],
+          ["get", "prediction_prob"],
+          0,
+          "#22c55e",
+          moderateMin,
+          "#eab308",
+          elevatedMin,
+          "#f97316",
+          highMin,
+          "#ef4444",
+        ],
       ],
-    ],
-    "fill-opacity": 0.65,
-  },
-};
+      "fill-opacity": 0.65,
+    },
+  };
+}
 
 export default function App() {
   const mapRef = useRef<MapRef>(null);
@@ -123,6 +134,26 @@ export default function App() {
       }),
     };
   }, [countriesGeoJSON, allPredictions]);
+
+  const riskThresholds = useMemo(
+    () => computeRiskThresholds(allPredictions),
+    [allPredictions],
+  );
+
+  const riskBucketBounds = useMemo(
+    () => getRiskBucketBounds(riskThresholds),
+    [riskThresholds],
+  );
+
+  const countryHeatmapLayerStyle = useMemo(
+    () =>
+      buildCountryHeatmapLayerStyle(
+        riskThresholds.moderateMin,
+        riskThresholds.elevatedMin,
+        riskThresholds.highMin,
+      ),
+    [riskThresholds],
+  );
 
   const selectedEvent = useFilterStore((s) => s.selectedEvent);
   const setSelectedEvent = useFilterStore((s) => s.setSelectedEvent);
@@ -349,9 +380,10 @@ return (
 
       <PredictionPanel
         prediction={selectedPrediction}
+        riskThresholds={riskThresholds}
         onClose={() => setSelectedPrediction(null)}
       />
-      <MapLegend />
+      <MapLegend riskBucketBounds={riskBucketBounds} />
     </div>
   </Layout>
 )};

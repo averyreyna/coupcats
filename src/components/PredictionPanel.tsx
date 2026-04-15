@@ -1,5 +1,6 @@
 import { css } from "styled-system/css";
 import { predictionColors } from "../design-system/tokens";
+import { classifyRisk, type RiskThresholds } from "../lib/riskBuckets";
 import type { CoupPrediction } from "../types/coup";
 
 function safeNum(value: unknown): number {
@@ -14,6 +15,7 @@ function safeFmt(value: unknown, decimals = 3): string {
 
 interface Props {
   prediction: CoupPrediction | null;
+  riskThresholds: RiskThresholds;
   onClose: () => void;
 }
 
@@ -68,26 +70,18 @@ function StatRow({
   );
 }
 
-export default function PredictionPanel({ prediction, onClose }: Props) {
+export default function PredictionPanel({ prediction, riskThresholds, onClose }: Props) {
   if (!prediction) return null;
 
   const prob = prediction.prediction_prob;
   const hasValidProb = prob != null && isFinite(prob);
+  const riskMeta = classifyRisk(prob, riskThresholds);
 
-  const riskLabel = !hasValidProb ? "Unknown" :
-    prob < 0.05 ? "Very Low" :
-    prob < 0.15 ? "Moderate" :
-    prob < 0.30 ? "Elevated" : "High";
+  const riskLabel = riskMeta?.label ?? "Unknown";
 
-  const riskHex = !hasValidProb ? predictionColors.null :
-    prob < 0.05 ? predictionColors.veryLow :
-    prob < 0.15 ? predictionColors.moderate :
-    prob < 0.30 ? predictionColors.elevated : predictionColors.high;
+  const riskHex = riskMeta?.color ?? predictionColors.null;
 
-  const probBarColor = !hasValidProb ? predictionColors.null :
-    prob < 0.05 ? predictionColors.veryLow :
-    prob < 0.15 ? predictionColors.moderate :
-    prob < 0.30 ? predictionColors.elevated : predictionColors.high;
+  const probBarColor = riskMeta?.color ?? predictionColors.null;
 
   const regimeType =
     prediction.liberal_democracy     ? "Liberal Democracy" :
@@ -144,7 +138,10 @@ export default function PredictionPanel({ prediction, onClose }: Props) {
           <div
             className={css({ height: "2", borderRadius: "full", transition: "all" })}
             style={{
-              width: hasValidProb ? `${Math.min(prob! / 0.3, 1) * 100}%` : "0%",
+              width:
+                hasValidProb && prob != null
+                  ? `${Math.min(prob / Math.max(riskThresholds.highMin, 1e-9), 1) * 100}%`
+                  : "0%",
               backgroundColor: probBarColor,
             }}
           />

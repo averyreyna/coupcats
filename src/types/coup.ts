@@ -74,6 +74,19 @@ export interface CoupPrediction{
   Trade: number;
   neighboring_coup: number;
   prediction_prob: number | null;
+  yhat?: number | null;
+  polyarchy?: number | null;
+  milreg?: number | null;
+  milit?: number | null;
+  gdppc?: number | null;
+  ch_gdppc?: number | null;
+  ltrade?: number | null;
+  wom_polpart?: number | null;
+  protests?: number | null;
+  cw?: number | null;
+  milex_spliced?: number | null;
+  milper_spliced?: number | null;
+  cold?: number | null;
 }
 //Creating the type in which the json is exported as
 export type PredictionFeatureCollection = GeoJSON.FeatureCollection<

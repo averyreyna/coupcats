@@ -41,9 +41,7 @@ export default function Sidebar({ activeNav, onNavChange }: SidebarProps) {
           flexDirection: "column",
           justifyContent: "flex-start",
           borderTopWidth: "0",
-          borderRightWidth: "0.5px",
-          borderRightStyle: "solid",
-          borderRightColor: "var(--colors-border-default)",
+          borderRightWidth: "0",
           paddingBottom: "0",
           width: collapsed ? "72px" : "280px",
           boxShadow: "none",
@@ -91,8 +89,14 @@ export default function Sidebar({ activeNav, onNavChange }: SidebarProps) {
       {/* Desktop sidebar */}
       <div className={css({ display: "none", md: { display: "flex", height: "full", width: "full", flexDirection: "column" } })}>
         {/* Logo row */}
-        <div className={css({ display: "flex", minHeight: "56px", alignItems: "center", justifyContent: collapsed ? "center" : "flex-start", borderBottomWidth: "0.5px", borderBottomStyle: "solid", borderBottomColor: "var(--colors-border-default)", paddingInline: "3.5" })}>
-          {!collapsed && (
+        <div className={css({ display: "flex", minHeight: "56px", alignItems: "center", justifyContent: collapsed ? "center" : "flex-start", borderBottomWidth: "0", paddingInline: "3.5" })}>
+          {collapsed ? (
+            <img
+              src="/favicon.svg"
+              alt="CoupCats"
+              className={css({ height: "6", width: "6", flexShrink: "0" })}
+            />
+          ) : (
             <span className={css({ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontSize: "sm", fontWeight: "semibold", color: "var(--colors-text-primary)" })}>
               CoupCats
             </span>

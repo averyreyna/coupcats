@@ -1,5 +1,15 @@
 import express from "express";
 import cors from "cors";
+import dotenv from "dotenv";
+import { readFileSync } from "fs";
+import { join } from "path";
+
+dotenv.config();
+
+// Load predictions from the local file at startup instead of fetching from GitHub
+const riskData: any[] = JSON.parse(
+  readFileSync(join(__dirname, "../data/yhat_data_2026_month4.json"), "utf-8")
+);
 
 const app = express();
 const PORT = process.env.PORT ?? 3001;
@@ -30,6 +40,33 @@ app.post("/api/predict", async (req, res) => {
   } catch (err) {
     res.status(502).json({ error: "R API unreachable" });
   }
+});
+
+app.get("/api/risk/all", (_req, res) => {
+  const formatted = riskData.map((item) => ({
+    country: item.country,
+    risk: item.yhat,  // was prediction_prob
+  }));
+  res.json(formatted);
+});
+
+app.get("/api/countries", (_req, res) => {
+  const countries = riskData.map((item) => item.country);
+  res.json(countries);
+});
+
+app.get("/api/countries/:country", (req, res) => {
+  const countryData = riskData.find(
+    (item) => item.country.toLowerCase() === req.params.country.toLowerCase()
+  );
+  if (!countryData) {
+    return res.status(404).json({ error: "Country not found" });
+  }
+  res.json({
+    country: countryData.country,
+    risk: countryData.yhat,  // was prediction_prob
+    raw: countryData,
+  });
 });
 
 app.listen(PORT, () => {
