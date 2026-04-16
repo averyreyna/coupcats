@@ -103,16 +103,6 @@ export default function App() {
 
   const [monthsAhead, setMonthsAhead] = useState<1 | 2 | 3>(1);
 
-  const CURRENT_YEAR = 2026;
-  const CURRENT_MONTH = 4; // April
-
-  function getTargetMonth(monthsAhead: number) {
-    const total = CURRENT_YEAR * 12 + CURRENT_MONTH + monthsAhead;
-    const year = Math.floor((total - 1) / 12);
-    const month = total - year * 12;
-    return { year, month };
-  }
-
   const filteredEvents = useMemo(() => {
     return allEvents.filter((event) => {
       return event.year >= yearRange[0] && event.year <= yearRange[1];
@@ -147,11 +137,7 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    const target = getTargetMonth(monthsAhead);
-
-    fetch(
-      `http://localhost:3001/api/forecast?year=${target.year}&month=${target.month}`,
-    )
+    fetch(`http://localhost:3001/api/forecast?monthsAhead=${monthsAhead}`)
       .then((res) => {
         if (!res.ok) {
           throw new Error(

@@ -1,3 +1,5 @@
+// Forecast(n months) = 1 - (1 - p)^n
+
 import { Router, Request, Response } from "express";
 import { fileURLToPath } from "url";
 import { dirname, join } from "path";
@@ -9,46 +11,32 @@ const __dirname = dirname(__filename);
 const router = Router();
 
 const riskData: any[] = JSON.parse(
-  readFileSync(
-    join(__dirname, "../../../src/data/yhat_data_2026_month4.json"),
-    "utf-8",
-  ),
+  readFileSync(join(__dirname, "../../../src/data/current_yhat.json"), "utf-8"),
 );
 
-function buildForecastRows(year: number, month: number) {
-  const baselineYear = 2026;
-  const baselineMonth = 4;
-
-  const monthOffset = (year - baselineYear) * 12 + (month - baselineMonth);
-
+function buildForecastRows(monthsAhead: number) {
   return riskData.map((item) => {
-    const baseYhat = Number(item.yhat ?? 0);
+    const p = Number(item.yhat);
+    const baseYhat = isFinite(p) ? p : 0;
 
-    const adjustedYhat = Math.max(0, baseYhat * (1 + monthOffset * 0.03));
+    const adjustedYhat = 1 - Math.pow(1 - baseYhat, monthsAhead);
 
     return {
       ...item,
-      year,
-      month,
+      monthsAhead,
       yhat: adjustedYhat,
     };
   });
 }
 
 router.get("/forecast", (req: Request, res: Response) => {
-  const year = Number(req.query.year);
-  const month = Number(req.query.month);
+  const monthsAhead = Number(req.query.monthsAhead);
 
-  if (
-    !Number.isInteger(year) ||
-    !Number.isInteger(month) ||
-    month < 1 ||
-    month > 12
-  ) {
-    return res.status(400).json({ error: "Invalid year or month" });
+  if (!Number.isInteger(monthsAhead) || monthsAhead < 1 || monthsAhead > 12) {
+    return res.status(400).json({ error: "Invalid monthsAhead" });
   }
 
-  const forecastRows = buildForecastRows(year, month);
+  const forecastRows = buildForecastRows(monthsAhead);
   res.json(forecastRows);
 });
 
