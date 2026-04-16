@@ -19,8 +19,8 @@ const cardStyle = css({
   borderColor: "var(--colors-border-default)",
   backgroundColor: "var(--colors-bg-panel)",
   boxShadow: "var(--shadows-xl)",
-  paddingTop: "7",
-  paddingRight: "7",
+  paddingTop: "4",
+  paddingRight: "4",
   paddingBottom: "3",
   paddingLeft: "3",
   fontFamily: "var(--fonts-sans)",
@@ -33,7 +33,7 @@ const idStyle = css({
 });
 
 const countryStyle = css({
-  marginTop: "1",
+  marginTop: "0.5",
   fontSize: "sm",
   fontWeight: "bold",
   color: "var(--colors-text-primary)",

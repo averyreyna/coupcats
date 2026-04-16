@@ -1,6 +1,5 @@
+import autoprefixer from "autoprefixer";
+
 export default {
-  plugins: {
-    "@pandacss/dev/postcss": {},
-    autoprefixer: {},
-  },
+  plugins: [autoprefixer()],
 };

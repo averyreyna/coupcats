@@ -4,8 +4,10 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "NODE_OPTIONS=--experimental-require-module panda codegen --no-watch && tsc -b && vite build",
+    "panda:codegen": "NODE_OPTIONS=--experimental-require-module panda codegen --no-watch",
+    "panda:cssgen": "NODE_OPTIONS=--experimental-require-module panda cssgen --clean",
+    "dev": "npm run panda:codegen && npm run panda:cssgen && vite",
+    "build": "npm run panda:codegen && npm run panda:cssgen && tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview"
   },
