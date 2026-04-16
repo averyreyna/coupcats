@@ -1,14 +1,18 @@
 import express from "express";
 import cors from "cors";
+import dotenv from "dotenv";
+import forecastRouter from "./routes/forecast.js";
+dotenv.config();
 const app = express();
-const PORT = Number(process.env.PORT) || 3001;
+const PORT = process.env.PORT ?? 3001;
 const R_API_URL = process.env.R_API_URL ?? "http://localhost:8000";
 app.use(cors());
 app.use(express.json());
+app.use("/api", forecastRouter);
 app.get("/api/health", async (_req, res) => {
     try {
         const r = await fetch(`${R_API_URL}/health`);
-        const data = (await r.json());
+        const data = await r.json();
         res.json(data);
     }
     catch (err) {
@@ -22,7 +26,7 @@ app.post("/api/predict", async (req, res) => {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(req.body),
         });
-        const data = (await r.json());
+        const data = await r.json();
         res.status(r.ok ? 200 : 502).json(data);
     }
     catch (err) {

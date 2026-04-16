@@ -11,7 +11,7 @@ export interface FilterState {
   selectedEvent: CoupEvent | null;
   selectedCountry: string | null;
   yearRange: [number, number];
-  viewMode: "events" | "risk";
+  viewMode: "events" | "risk" | "forecast";
 
   setYearRange: (range: [number, number]) => void;
   setSearchQuery: (q: string) => void;
@@ -23,7 +23,7 @@ export interface FilterState {
   reset: () => void;
   setSelectedEvent: (event: CoupEvent | null) => void;
   setSelectedCountry: (country: string | null) => void;
-  setViewMode: (mode: "events" | "risk") => void;
+  setViewMode: (mode: "events" | "risk" | "forecast") => void;
 }
 
 const INITIAL_DATE_RANGE: [number, number] = [1950, 2030];
@@ -93,4 +93,4 @@ export const useFilterStore = create<FilterState>((set) => ({
   setViewMode: (mode) => set({ viewMode: mode }),
   setSelectedEvent: (event) => set({ selectedEvent: event }),
   setSelectedCountry: (country) => set({ selectedCountry: country }),
-}))
+}));

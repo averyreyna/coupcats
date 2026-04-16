@@ -1,5 +1,9 @@
 import { css } from "styled-system/css";
-import { OUTCOME_COLORS, OUTCOME_LABELS, PREDICTION_NULL_COLOR } from "../lib/colors";
+import {
+  OUTCOME_COLORS,
+  OUTCOME_LABELS,
+  PREDICTION_NULL_COLOR,
+} from "../lib/colors";
 import type { RiskBucketBound } from "../lib/riskBuckets";
 import type { CoupOutcome } from "../types/coup";
 import { useFilterStore } from "../store/useFilterStore";
@@ -15,7 +19,8 @@ const legendStyle = css({
   borderWidth: "1px",
   borderStyle: "solid",
   borderColor: "var(--colors-border-default)",
-  backgroundColor: "color-mix(in srgb, var(--colors-bg-panel) 92%, var(--colors-bg-muted))",
+  backgroundColor:
+    "color-mix(in srgb, var(--colors-bg-panel) 92%, var(--colors-bg-muted))",
   paddingInline: "3.5",
   paddingBlock: "2.5",
   boxShadow: "0 8px 22px color-mix(in srgb, #000 12%, transparent)",
@@ -77,19 +82,31 @@ interface MapLegendProps {
 export default function MapLegend({ riskBucketBounds }: MapLegendProps) {
   const viewMode = useFilterStore((s) => s.viewMode);
 
-  if (viewMode === "risk") {
+  if (viewMode === "risk" || viewMode === "forecast") {
     return (
       <div className={legendStyle}>
         <div className={labelStyle}>Coup Risk</div>
-        <div className={css({ display: "flex", flexDirection: "column", gap: "1" })}>
+        <div
+          className={css({
+            display: "flex",
+            flexDirection: "column",
+            gap: "1",
+          })}
+        >
           {riskBucketBounds.map((bound) => (
             <div key={bound.key} className={rowStyle}>
-              <span className={swatchStyle} style={{ backgroundColor: bound.color }} />
+              <span
+                className={swatchStyle}
+                style={{ backgroundColor: bound.color }}
+              />
               {riskRangeLabel(bound)}
             </div>
           ))}
           <div className={rowStyle}>
-            <span className={swatchStyle} style={{ backgroundColor: PREDICTION_NULL_COLOR }} />
+            <span
+              className={swatchStyle}
+              style={{ backgroundColor: PREDICTION_NULL_COLOR }}
+            />
             No data
           </div>
         </div>
@@ -100,7 +117,9 @@ export default function MapLegend({ riskBucketBounds }: MapLegendProps) {
   return (
     <div className={legendStyle}>
       <div className={labelStyle}>Outcome</div>
-      <div className={css({ display: "flex", flexDirection: "column", gap: "1" })}>
+      <div
+        className={css({ display: "flex", flexDirection: "column", gap: "1" })}
+      >
         {OUTCOMES.map((outcome) => (
           <div key={outcome} className={rowStyle}>
             <span

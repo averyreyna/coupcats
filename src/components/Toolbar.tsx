@@ -63,7 +63,8 @@ const searchInputStyle = css({
   borderWidth: "1px",
   borderStyle: "solid",
   borderColor: "var(--colors-border-default)",
-  backgroundColor: "color-mix(in srgb, var(--colors-bg-panel) 94%, var(--colors-bg-muted))",
+  backgroundColor:
+    "color-mix(in srgb, var(--colors-bg-panel) 94%, var(--colors-bg-muted))",
   paddingBlock: "2",
   paddingLeft: "9",
   paddingRight: "3.5",
@@ -73,7 +74,8 @@ const searchInputStyle = css({
   _focus: {
     outline: "none",
     borderColor: "var(--colors-accent-default)",
-    boxShadow: "0 0 0 3px color-mix(in srgb, var(--colors-accent-default) 18%, transparent)",
+    boxShadow:
+      "0 0 0 3px color-mix(in srgb, var(--colors-accent-default) 18%, transparent)",
   },
 });
 
@@ -96,7 +98,8 @@ const toggleGroupStyle = css({
   borderWidth: "1px",
   borderStyle: "solid",
   borderColor: "var(--colors-border-default)",
-  backgroundColor: "color-mix(in srgb, var(--colors-bg-muted) 92%, var(--colors-bg-panel))",
+  backgroundColor:
+    "color-mix(in srgb, var(--colors-bg-muted) 92%, var(--colors-bg-panel))",
   padding: "1",
 });
 
@@ -112,18 +115,21 @@ function viewModeButtonStyle(active: boolean) {
     transition: "all 160ms ease",
     ...(active
       ? {
-          backgroundColor: "color-mix(in srgb, var(--colors-accent-muted) 70%, var(--colors-bg-panel))",
+          backgroundColor:
+            "color-mix(in srgb, var(--colors-accent-muted) 70%, var(--colors-bg-panel))",
           color: "var(--colors-accent-text)",
           borderWidth: "1px",
           borderStyle: "solid",
-          borderColor: "color-mix(in srgb, var(--colors-accent-default) 28%, transparent)",
+          borderColor:
+            "color-mix(in srgb, var(--colors-accent-default) 28%, transparent)",
           boxShadow: "0 1px 2px color-mix(in srgb, #000 10%, transparent)",
         }
       : {
           color: "var(--colors-text-muted)",
           _hover: {
             color: "var(--colors-text-secondary)",
-            backgroundColor: "color-mix(in srgb, var(--colors-bg-hover) 80%, transparent)",
+            backgroundColor:
+              "color-mix(in srgb, var(--colors-bg-hover) 80%, transparent)",
           },
         }),
   });
@@ -147,7 +153,15 @@ export default function Toolbar({ regions, tags }: ToolbarProps) {
     <div className={toolbarStyle}>
       <div className={searchWrapperStyle}>
         <div className={searchInnerStyle}>
-          <Search className={css({ position: "absolute", left: "3", height: "4", width: "4", color: "var(--colors-text-subtle)" })} />
+          <Search
+            className={css({
+              position: "absolute",
+              left: "3",
+              height: "4",
+              width: "4",
+              color: "var(--colors-text-subtle)",
+            })}
+          />
           <input
             type="search"
             value={searchQuery}
@@ -161,11 +175,23 @@ export default function Toolbar({ regions, tags }: ToolbarProps) {
       <div className={filtersRowStyle}>
         {/* View Mode Toggle */}
         <div className={toggleGroupStyle}>
-          <button onClick={() => setViewMode("events")} className={viewModeButtonStyle(viewMode === "events")}>
+          <button
+            onClick={() => setViewMode("events")}
+            className={viewModeButtonStyle(viewMode === "events")}
+          >
             Events
           </button>
-          <button onClick={() => setViewMode("risk")} className={viewModeButtonStyle(viewMode === "risk")}>
-            Coup Risk
+          <button
+            onClick={() => setViewMode("risk")}
+            className={viewModeButtonStyle(viewMode === "risk")}
+          >
+            Current Risk
+          </button>
+          <button
+            onClick={() => setViewMode("forecast")}
+            className={viewModeButtonStyle(viewMode === "forecast")}
+          >
+            Forecast Risk
           </button>
         </div>
 
@@ -173,37 +199,112 @@ export default function Toolbar({ regions, tags }: ToolbarProps) {
         {viewMode === "events" && (
           <>
             <FilterDropdown label="Status">
-              <div className={css({ display: "flex", flexDirection: "column", gap: "0.5", paddingInline: "2" })}>
+              <div
+                className={css({
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "0.5",
+                  paddingInline: "2",
+                })}
+              >
                 {OUTCOMES.map(({ value, label }) => (
-                  <FilterCheckboxItem key={value} label={label} checked={selectedOutcomes.includes(value)} onChange={() => toggleOutcome(value)} />
+                  <FilterCheckboxItem
+                    key={value}
+                    label={label}
+                    checked={selectedOutcomes.includes(value)}
+                    onChange={() => toggleOutcome(value)}
+                  />
                 ))}
               </div>
             </FilterDropdown>
             <FilterDropdown label="Date">
-              <div className={css({ display: "flex", maxHeight: "48", flexDirection: "column", gap: "0.5", overflowY: "auto", paddingInline: "2", paddingBlock: "1" })}>
+              <div
+                className={css({
+                  display: "flex",
+                  maxHeight: "48",
+                  flexDirection: "column",
+                  gap: "0.5",
+                  overflowY: "auto",
+                  paddingInline: "2",
+                  paddingBlock: "1",
+                })}
+              >
                 {DECADES.map((decade) => (
-                  <FilterCheckboxItem key={decade} label={`${decade}s`} checked={selectedDecades.includes(decade)} onChange={() => toggleDecade(decade)} />
+                  <FilterCheckboxItem
+                    key={decade}
+                    label={`${decade}s`}
+                    checked={selectedDecades.includes(decade)}
+                    onChange={() => toggleDecade(decade)}
+                  />
                 ))}
               </div>
             </FilterDropdown>
             <FilterDropdown label="Region">
-              <div className={css({ display: "flex", maxHeight: "48", flexDirection: "column", gap: "0.5", overflowY: "auto", paddingInline: "2", paddingBlock: "1" })}>
+              <div
+                className={css({
+                  display: "flex",
+                  maxHeight: "48",
+                  flexDirection: "column",
+                  gap: "0.5",
+                  overflowY: "auto",
+                  paddingInline: "2",
+                  paddingBlock: "1",
+                })}
+              >
                 {regions.length === 0 ? (
-                  <span className={css({ paddingInline: "2", paddingBlock: "2", fontSize: "sm", color: "var(--colors-text-subtle)" })}>No regions in data</span>
+                  <span
+                    className={css({
+                      paddingInline: "2",
+                      paddingBlock: "2",
+                      fontSize: "sm",
+                      color: "var(--colors-text-subtle)",
+                    })}
+                  >
+                    No regions in data
+                  </span>
                 ) : (
                   regions.map((region) => (
-                    <FilterCheckboxItem key={region} label={region} checked={selectedRegions.includes(region)} onChange={() => toggleRegion(region)} />
+                    <FilterCheckboxItem
+                      key={region}
+                      label={region}
+                      checked={selectedRegions.includes(region)}
+                      onChange={() => toggleRegion(region)}
+                    />
                   ))
                 )}
               </div>
             </FilterDropdown>
             <FilterDropdown label="Tags">
-              <div className={css({ display: "flex", maxHeight: "48", flexDirection: "column", gap: "0.5", overflowY: "auto", paddingInline: "2", paddingBlock: "1" })}>
+              <div
+                className={css({
+                  display: "flex",
+                  maxHeight: "48",
+                  flexDirection: "column",
+                  gap: "0.5",
+                  overflowY: "auto",
+                  paddingInline: "2",
+                  paddingBlock: "1",
+                })}
+              >
                 {tags.length === 0 ? (
-                  <span className={css({ paddingInline: "2", paddingBlock: "2", fontSize: "sm", color: "var(--colors-text-subtle)" })}>No tags in data</span>
+                  <span
+                    className={css({
+                      paddingInline: "2",
+                      paddingBlock: "2",
+                      fontSize: "sm",
+                      color: "var(--colors-text-subtle)",
+                    })}
+                  >
+                    No tags in data
+                  </span>
                 ) : (
                   tags.map((tag) => (
-                    <FilterCheckboxItem key={tag} label={tag} checked={selectedTags.includes(tag)} onChange={() => toggleTag(tag)} />
+                    <FilterCheckboxItem
+                      key={tag}
+                      label={tag}
+                      checked={selectedTags.includes(tag)}
+                      onChange={() => toggleTag(tag)}
+                    />
                   ))
                 )}
               </div>
