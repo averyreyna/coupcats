@@ -1,47 +1,28 @@
-## How to Add or Update Narratives
+## Updating Forecast Data
 
-Follow these steps when new narratives are completed:
+Forecast Risk uses a baseline dataset (`yhat`) from:
 
-### 1. Update the tracker
-
-- Download the latest Excel sheet
-- Export it as a `.csv`
-- Replace the existing CSV file used by the project
-
-### 2. Sync narrative entries
-
-Run the sync script:
-
-```bash
-node src/data/syncNarratives.mjs
+```
+src/data/current_yhat.json
 ```
 
-This will:
+To update:
 
-- Add new completed events to `narratives.json`
-- Preserve existing narratives and content
+1. Replace this file with the latest dataset
+2. Restart the backend
 
-### 3. Add narrative content
+Current Risk is loaded separately and is not affected by this file.
 
-Open:
+## Updating Narratives
 
-`src/data/narratives.json`
+1. Save the tracker CSV in `src/data/` as `narratives.csv`
+2. Run:
 
-Find the event by ID and fill in:
+   ```bash
+   cd coupcats
+   node src/data/syncNarratives.mjs
+   ```
 
-```json
-"content": ["Paragraph 1", "Paragraph 2"],
-"references": ["Source 1", "Source 2"]
-```
+3. Add narrative content in `src/data/narratives.json`
 
-### 4. Verify in the app
-
-- Click the event on the map
-- Ensure “Read Full Narrative” appears
-- Confirm the narrative page renders correctly
-
-### Notes
-
-- Do NOT overwrite existing content
-- If a narrative is not ready, leave `content` empty
-- Narrative visibility depends on `content.length > 0`
+Existing content is preserved automatically.

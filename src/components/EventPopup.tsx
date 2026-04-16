@@ -1,10 +1,13 @@
 import { css } from "styled-system/css";
+import { Link } from "react-router-dom";
+import { narratives } from "../data/narratives";
 import type { CoupEvent } from "../types/coup";
 import { OUTCOME_STYLES } from "../lib/outcomeStyles";
 import { formatDate } from "../lib/date";
 
 export interface EventPopupProps {
   event: CoupEvent;
+  onNavigateToNarrative?: () => void;
 }
 
 const cardStyle = css({
@@ -63,8 +66,33 @@ const descStyle = css({
   WebkitLineClamp: "2",
 });
 
+const footerRowStyle = css({
+  marginTop: "2",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "space-between",
+  gap: "2",
+});
+
+const narrativeLinkStyle = css({
+  display: "inline-flex",
+  alignItems: "center",
+  borderRadius: "md",
+  backgroundColor: "#f59e0b",
+  paddingInline: "3",
+  paddingBlock: "1.5",
+  fontSize: "xs",
+  fontWeight: "medium",
+  color: "black",
+  textDecoration: "none",
+});
+
+const narrativeMissingStyle = css({
+  fontSize: "xs",
+  color: "var(--colors-text-subtle)",
+});
+
 const dateRowStyle = css({
-  marginTop: "1.5",
   display: "flex",
   alignItems: "center",
   justifyContent: "flex-end",
@@ -73,13 +101,19 @@ const dateRowStyle = css({
   color: "var(--colors-text-subtle)",
 });
 
-export default function EventPopup({ event }: EventPopupProps) {
+export default function EventPopup({
+  event,
+  onNavigateToNarrative,
+}: EventPopupProps) {
   const style = OUTCOME_STYLES[event.outcome];
+  const narrative = narratives[event.id];
+  const hasNarrative = narrative?.content?.length > 0;
 
   return (
     <div className={`popup-enter ${cardStyle}`}>
       <div className={idStyle}>{event.id}</div>
       <h3 className={countryStyle}>{event.country}</h3>
+
       <div className={tagRowStyle}>
         <span className={style.badgeClass}>
           <span className={style.dotClass} />
@@ -87,12 +121,32 @@ export default function EventPopup({ event }: EventPopupProps) {
         </span>
         <span className={geoTagStyle}>Geolocated</span>
       </div>
+
       {event.description && (
-        <p className={descStyle} style={{ WebkitBoxOrient: "vertical" }}>{event.description}</p>
+        <p className={descStyle} style={{ WebkitBoxOrient: "vertical" }}>
+          {event.description}
+        </p>
       )}
-      <div className={dateRowStyle}>
-        <CalendarIcon className={css({ height: "3.5", width: "3.5", flexShrink: "0" })} />
-        {formatDate(event.date)}
+
+      <div className={footerRowStyle}>
+        {hasNarrative ? (
+          <Link
+            to={`/narrative/${event.id}`}
+            onClick={() => onNavigateToNarrative?.()}
+            className={narrativeLinkStyle}
+          >
+            Read Full Narrative
+          </Link>
+        ) : (
+          <span className={narrativeMissingStyle}>Narrative coming soon</span>
+        )}
+
+        <div className={dateRowStyle}>
+          <CalendarIcon
+            className={css({ height: "3.5", width: "3.5", flexShrink: "0" })}
+          />
+          {formatDate(event.date)}
+        </div>
       </div>
     </div>
   );

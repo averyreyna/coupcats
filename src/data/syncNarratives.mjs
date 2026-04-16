@@ -6,7 +6,7 @@ Follow these steps when new narratives are completed:
 1. Update the tracker
 * Download the latest Excel sheet
 * Export it as a `.csv`
-* Replace the existing CSV file used by the project
+* Save as narratives.csv in src/data
 
 2. Sync narrative entries
 Run the sync script: node src/data/syncNarratives.mjs
@@ -39,7 +39,7 @@ import path from "path";
 
 const DATA_DIR = path.resolve("src/data");
 
-const CSV_PATH = path.join(DATA_DIR, "Coups to complete(Coup Narratives).csv");
+const CSV_PATH = path.join(DATA_DIR, "narratives.csv");
 const EVENTS_PATH = path.join(DATA_DIR, "coups.geojson");
 const NARRATIVES_PATH = path.join(DATA_DIR, "narratives.json");
 
