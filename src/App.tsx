@@ -26,6 +26,7 @@ import { computeRiskThresholds, getRiskBucketBounds } from "./lib/riskBuckets";
 import { useMapHover } from "./hooks/useMapHover";
 import { useEscapeToClearSelection } from "./hooks/useEscapeToClearSelection";
 import { useClearSelectionOnMapClick } from "./hooks/useClearSelectionOnMapClick";
+import currentYhatData from "./data/current_yhat.json";
 
 const MAP_STYLE =
   "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json";
@@ -137,22 +138,18 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    fetch(`http://localhost:3001/api/forecast?monthsAhead=${monthsAhead}`)
-      .then((res) => {
-        if (!res.ok) {
-          throw new Error(
-            `Failed to fetch forecast predictions: ${res.status}`,
-          );
-        }
-        return res.json();
-      })
-      .then((rows) => {
-        setForecastPredictions(rows);
-      })
-      .catch((err) => {
-        console.error("Failed to load forecast predictions:", err);
-        setForecastPredictions([]);
-      });
+    const rows = (currentYhatData as CoupPrediction[]).map((item) => {
+      const p = Number(item.yhat);
+      const baseYhat = isFinite(p) ? p : 0;
+
+      return {
+        ...item,
+        monthsAhead,
+        yhat: 1 - Math.pow(1 - baseYhat, monthsAhead),
+      };
+    });
+
+    setForecastPredictions(rows);
   }, [monthsAhead]);
 
   // Enrich countries GeoJSON with prediction_prob for the heatmap fill layer
