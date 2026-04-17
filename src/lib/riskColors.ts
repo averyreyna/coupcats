@@ -116,30 +116,23 @@ export function buildChoroplethFillColor(
 }
 
 import type { CoupEvent } from "../types/coup";
+import { predictionColors, neutral } from "../design-system/tokens";
+
+export const EVENT_NO_DATA_COLOR = neutral[500]; // matches PREDICTION_NULL_COLOR
+
+const EVENT_COLOR_STOPS = [
+  predictionColors.veryLow,
+  predictionColors.moderate,
+  predictionColors.elevated,
+  predictionColors.high,
+];
 
 function eventScoreToColor(score: number): string {
-  const clamped = Math.max(0, Math.min(1, score));
-
-  const stops: [number, number, number][] = [
-    [0x22, 0xc5, 0x5e], // #22c55e green-500
-    [0xea, 0xb3, 0x08], // #eab308 yellow-500
-    [0xf9, 0x73, 0x16], // #f97316 orange-500
-    [0xef, 0x44, 0x44], // #ef4444 red-500
-  ];
-
-  const seg = clamped * (stops.length - 1);
-  const lo = Math.min(Math.floor(seg), stops.length - 2);
-  const t = seg - lo;
-  const [r1, g1, b1] = stops[lo];
-  const [r2, g2, b2] = stops[lo + 1];
-
-  const r = Math.round(r1 + (r2 - r1) * t);
-  const g = Math.round(g1 + (g2 - g1) * t);
-  const b = Math.round(b1 + (b2 - b1) * t);
-  return `#${r.toString(16).padStart(2, "0")}${g.toString(16).padStart(2, "0")}${b.toString(16).padStart(2, "0")}`;
+  if (score < 0.25) return EVENT_COLOR_STOPS[0];
+  if (score < 0.5)  return EVENT_COLOR_STOPS[1];
+  if (score < 0.75) return EVENT_COLOR_STOPS[2];
+  return EVENT_COLOR_STOPS[3];
 }
-
-export const EVENT_NO_DATA_COLOR = "#e5e7eb"; // gray-200 — neutral on the light map
 
 export function buildEventCountChoropleth(events: CoupEvent[]): any[] {
   const counts = new Map<string, number>();
