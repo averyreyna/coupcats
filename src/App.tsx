@@ -2,6 +2,7 @@ import { useRef, useState, useCallback, useMemo, useEffect } from "react";
 import { css } from "styled-system/css";
 import { Map, Source, Layer, Popup, type MapRef } from "@vis.gl/react-maplibre";
 import type {
+  CircleLayerSpecification,
   FillLayerSpecification,
   MapLayerMouseEvent,
 } from "maplibre-gl";
@@ -9,21 +10,20 @@ import { type CoupEvent, type CoupPrediction } from "./types/coup";
 import PredictionPanel from "./components/PredictionPanel";
 import EventPopup from "./components/EventPopup";
 import MapLegend from "./components/MapLegend";
-import EventsHeatmapLegend from "./components/EventsHeatmapLegend";
 import Layout from "./components/Layout";
 import { useFilterStore } from "./store/useFilterStore";
-import { PREDICTION_NULL_COLOR } from "./lib/colors";
+import { OUTCOME_COLORS, PREDICTION_NULL_COLOR } from "./lib/colors";
 import {
+  getCoupsFeatureCollection,
   getAllCoupEvents,
   getPredictionFeatureCollection,
   buildPredictionProbMap,
   COW_TO_ADMIN_ALIASES,
 } from "./lib/coupData";
 import { buildYhatPredictionProbMap } from "./lib/yhatPredictions";
+import { buildMapFilterExpression } from "./lib/filterHelpers";
 import { computeRiskThresholds, getRiskBucketBounds } from "./lib/riskBuckets";
 import { getDataLookupName, getCoHighlightNames } from "./lib/countryNameMapping";
-import { buildEventCountChoropleth, getMaxEventCount } from "./lib/riskColors";
-import { filterEvents } from "./lib/filterHelpers";
 import { useMapHover } from "./hooks/useMapHover";
 import { useEscapeToClearSelection } from "./hooks/useEscapeToClearSelection";
 import { useClearSelectionOnMapClick } from "./hooks/useClearSelectionOnMapClick";
@@ -39,6 +39,32 @@ import {
 const MAP_STYLE =
   "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json";
 
+const circleLayerPaint: CircleLayerSpecification["paint"] = {
+  "circle-radius": [
+    "case",
+    ["boolean", ["feature-state", "hover"], false],
+    14,
+    10,
+  ],
+  "circle-color": [
+    "match",
+    ["get", "outcome"],
+    "successful",
+    OUTCOME_COLORS.successful,
+    "failed",
+    OUTCOME_COLORS.failed,
+    "attempted",
+    OUTCOME_COLORS.attempted,
+    "plot",
+    OUTCOME_COLORS.plot,
+    "alleged",
+    OUTCOME_COLORS.alleged,
+    OUTCOME_COLORS.alleged,
+  ],
+  "circle-stroke-width": 2,
+  "circle-stroke-color": "#FFFFFF",
+  "circle-opacity": 1,
+};
 
 function buildCountryHeatmapLayerStyle(
   moderateMin: number,
@@ -196,10 +222,6 @@ export default function App() {
   const allEvents = useMemo(() => getAllCoupEvents(), []);
   const yearRange = useFilterStore((s) => s.yearRange);
   const viewMode = useFilterStore((s) => s.viewMode);
-  const searchQuery = useFilterStore((s) => s.searchQuery);
-  const selectedOutcomes = useFilterStore((s) => s.selectedOutcomes);
-  const selectedRegions = useFilterStore((s) => s.selectedRegions);
-  const selectedTags = useFilterStore((s) => s.selectedTags);
 
   const selectedEvent = useFilterStore((s) => s.selectedEvent);
   const setSelectedEvent = useFilterStore((s) => s.setSelectedEvent);
@@ -207,16 +229,17 @@ export default function App() {
   const setSelectedCountry = useFilterStore((s) => s.setSelectedCountry);
   const selectedGeoNames = useFilterStore((s) => s.selectedGeoNames);
   const setSelectedGeoNames = useFilterStore((s) => s.setSelectedGeoNames);
+  const searchQuery = useFilterStore((s) => s.searchQuery);
+  const selectedOutcomes = useFilterStore((s) => s.selectedOutcomes);
+  const selectedRegions = useFilterStore((s) => s.selectedRegions);
+  const dateRange = useFilterStore((s) => s.dateRange);
+  const selectedTags = useFilterStore((s) => s.selectedTags);
 
   const filteredEvents = useMemo(() => {
-    return filterEvents(allEvents, {
-      searchQuery,
-      selectedOutcomes,
-      selectedRegions,
-      selectedTags,
-      dateRange: yearRange,
+    return allEvents.filter((event) => {
+      return event.year >= yearRange[0] && event.year <= yearRange[1];
     });
-  }, [allEvents, yearRange, searchQuery, selectedOutcomes, selectedRegions, selectedTags]);
+  }, [allEvents, yearRange]);
 
   const [predictiveEnabled, setPredictiveEnabled] = useState(false);
   const [predictiveMode, setPredictiveMode] =
@@ -488,16 +511,6 @@ export default function App() {
     prevSelectedGeoNames.current = selectedGeoNames;
   }, [selectedGeoNames, mapLoaded]);
 
-  const eventChoroplethFillColor = useMemo(() => {
-    if (viewMode !== "events") return null;
-    return buildEventCountChoropleth(filteredEvents);
-  }, [viewMode, filteredEvents]);
-
-  const eventMaxCount = useMemo(() => {
-    if (viewMode !== "events") return 0;
-    return getMaxEventCount(filteredEvents);
-  }, [viewMode, filteredEvents]);
-
   useEffect(() => {
     if (viewMode === "events") {
       setSelectedRiskCountry(null);
@@ -507,6 +520,36 @@ export default function App() {
     }
     setSelectedGeoNames([]);
   }, [viewMode, setSelectedEvent, setSelectedCountry, setSelectedGeoNames]);
+
+  const filterExpression = useMemo(
+    () =>
+      buildMapFilterExpression(
+        {
+          searchQuery,
+          selectedOutcomes,
+          selectedRegions,
+          dateRange,
+          selectedTags,
+        },
+        allEvents,
+      ),
+    [
+      searchQuery,
+      selectedOutcomes,
+      selectedRegions,
+      dateRange,
+      selectedTags,
+      allEvents,
+    ],
+  );
+
+  const circleLayerStyle: CircleLayerSpecification = {
+    id: "coup-circles",
+    type: "circle",
+    source: "coups",
+    paint: circleLayerPaint,
+    filter: filterExpression,
+  };
 
   const { onMouseEnter, onMouseLeave } = useMapHover({
     mapRef,
@@ -635,7 +678,7 @@ export default function App() {
 
   useClearSelectionOnMapClick({
     mapRef,
-    layerIds: [],
+    layerIds: viewMode === "events" ? ["coup-circles"] : [],
     setSelectedEvent,
   });
 
@@ -703,7 +746,7 @@ export default function App() {
           mapStyle={MAP_STYLE}
           interactiveLayerIds={
             viewMode === "events"
-              ? ["countries-fill"]
+              ? ["coup-circles", "countries-fill"]
               : ["country-risk-fill", "countries-fill"]
           }
           onMouseEnter={onMouseEnter}
@@ -712,22 +755,17 @@ export default function App() {
           onClick={(e) => {
             const features = e.features ?? [];
 
-            if (
-              features.some((f) => f.layer?.id === "coup-circles") ||
-              (viewMode === "events" && features.some((f) => f.layer?.id === "countries-fill"))
-            ) {
+            if (features.some((f) => f.layer?.id === "coup-circles")) {
               onClick(e);
             } else if (features.some((f) => f.layer?.id === "country-risk-fill")) {
               const f = features.find((item) => item.layer?.id === "country-risk-fill");
-              const adminName = f?.properties?.ADMIN ?? null;
-              const geoName = f?.properties?.name ?? null;
-              const countryName = adminName ?? geoName;
-              const geoNames = [...new Set([adminName, geoName].filter(Boolean) as string[])];
+              const countryName =
+                f?.properties?.ADMIN ?? f?.properties?.name ?? null;
 
               setSelectedEvent(null);
               setSelectedCountry(null);
               setSelectedRiskCountry(countryName);
-              setSelectedGeoNames(countryName ? [...geoNames, ...getCoHighlightNames(countryName)] : []);
+              setSelectedGeoNames(countryName ? [countryName, ...getCoHighlightNames(countryName)] : []);
             } else {
               setSelectedEvent(null);
               setSelectedCountry(null);
@@ -737,34 +775,41 @@ export default function App() {
           }}
           onLoad={() => setMapLoaded(true)}
         >
+          {viewMode === "events" && (
+            <Source
+              id="coups"
+              type="geojson"
+              data={getCoupsFeatureCollection(filteredEvents)}
+              promoteId="id"
+            >
+              <Layer {...circleLayerStyle} />
+            </Source>
+          )}
+
           {countriesGeoJSON && (
             <Source id="countries" type="geojson" data={countriesGeoJSON} promoteId="name">
               <Layer
                 id="countries-fill"
                 type="fill"
                 beforeId="waterway_label"
-                paint={{
-                  "fill-color": (viewMode === "events" && eventChoroplethFillColor
-                    ? eventChoroplethFillColor
-                    : "rgba(0,0,0,0)") as any,
-                  "fill-opacity": viewMode === "events" && eventChoroplethFillColor ? 0.65 : 0,
-                }}
+                paint={{ "fill-color": "rgba(0,0,0,0)", "fill-opacity": 0 }}
               />
               <Layer
                 id="countries-outline"
                 type="line"
                 beforeId="waterway_label"
-                paint={{ "line-color": "#ffffff", "line-width": 0.5 }}
+                paint={{ "line-color": "#334155", "line-width": 0.5 }}
               />
               <Layer
                 id="countries-hover-outline"
                 type="line"
+                beforeId="waterway_label"
                 paint={{
-                  "line-color": "#ffffff",
+                  "line-color": "#e2e8f0",
                   "line-width": [
                     "case",
                     ["boolean", ["feature-state", "hover"], false],
-                    2.5,
+                    2,
                     0,
                   ] as any,
                 }}
@@ -772,12 +817,13 @@ export default function App() {
               <Layer
                 id="countries-selected-outline"
                 type="line"
+                beforeId="waterway_label"
                 paint={{
-                  "line-color": "#000000",
+                  "line-color": "#f59e0b",
                   "line-width": [
                     "case",
                     ["boolean", ["feature-state", "selected"], false],
-                    3,
+                    2.5,
                     0,
                   ] as any,
                 }}
@@ -787,7 +833,7 @@ export default function App() {
 
           {viewMode === "risk" && riskCountriesGeoJSON && (
             <Source id="country-risk" type="geojson" data={riskCountriesGeoJSON}>
-              <Layer {...countryHeatmapLayerStyle} beforeId="waterway_label" />
+              <Layer {...countryHeatmapLayerStyle} />
             </Source>
           )}
 
@@ -797,7 +843,7 @@ export default function App() {
               type="geojson"
               data={forecastCountriesGeoJSON}
             >
-              <Layer {...countryHeatmapLayerStyle} beforeId="waterway_label" />
+              <Layer {...countryHeatmapLayerStyle} />
             </Source>
           )}
 
@@ -816,7 +862,7 @@ export default function App() {
 
         <PredictionPanel
           prediction={selectedPrediction}
-
+          displayName={selectedRiskCountry ?? undefined}
           riskThresholds={riskThresholds}
           onClose={() => { setSelectedRiskCountry(null); setSelectedGeoNames([]); }}
           predictiveEnabled={predictiveEnabled}
@@ -832,9 +878,7 @@ export default function App() {
           monthsLabel={viewMode === "forecast" ? monthsAhead : futureMonths}
         />
 
-        {viewMode === "events"
-          ? <EventsHeatmapLegend maxCount={eventMaxCount} />
-          : <MapLegend riskBucketBounds={riskBucketBounds} />}
+        <MapLegend riskBucketBounds={riskBucketBounds} />
       </div>
     </Layout>
   );
