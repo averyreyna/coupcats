@@ -1,4 +1,5 @@
 import type { CoupEvent, CoupFeatureCollection, CoupPrediction, PredictionFeatureCollection } from "../types/coup";
+import { cowNameToGeoJsonAdmin } from "./countryNameMapping";
 
 // Known mismatches between COW country names (in predictions) and GeoJSON ADMIN names
 export const COW_TO_ADMIN_ALIASES: Record<string, string> = {
@@ -15,8 +16,7 @@ export function buildPredictionProbMap(
 ): Map<string, number | null> {
   const map = new Map<string, number | null>();
   for (const p of predictions) {
-    const cowName = p.country.toLowerCase().trim();
-    const key = COW_TO_ADMIN_ALIASES[cowName] ?? cowName;
+    const key = cowNameToGeoJsonAdmin(p.country).toLowerCase().trim();
     map.set(key, p.prediction_prob ?? null);
   }
   // Greenland has no COW entry — color it the same as Denmark
