@@ -19,6 +19,10 @@ export function buildPredictionProbMap(
     const key = COW_TO_ADMIN_ALIASES[cowName] ?? cowName;
     map.set(key, p.prediction_prob ?? null);
   }
+  // Greenland has no COW entry — color it the same as Denmark
+  if (!map.has("greenland") && map.has("denmark")) {
+    map.set("greenland", map.get("denmark")!);
+  }
   return map;
 }
 import coupsDataRaw from "../data/coups.geojson?raw";

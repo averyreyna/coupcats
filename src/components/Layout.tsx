@@ -97,6 +97,7 @@ export default function Layout({ children, mapRef, allEvents }: LayoutProps) {
   const [activeNav, setActiveNav] = useState<NavId>("home");
   const selectedCountry = useFilterStore((s) => s.selectedCountry);
   const setSelectedCountry = useFilterStore((s) => s.setSelectedCountry);
+  const setSelectedGeoNames = useFilterStore((s) => s.setSelectedGeoNames);
 
   const regions = useMemo(
     () => [...new Set(allEvents.map((event) => event.region))].sort(),
@@ -128,7 +129,7 @@ export default function Layout({ children, mapRef, allEvents }: LayoutProps) {
               <CountryPanel
                 country={selectedCountry}
                 events={countryEvents}
-                onClose={() => setSelectedCountry(null)}
+                onClose={() => { setSelectedCountry(null); setSelectedGeoNames([]); }}
               />
             </div>
           )}
