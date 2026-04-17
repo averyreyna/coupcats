@@ -8,6 +8,7 @@ import Toolbar from "./Toolbar";
 import EventsPanel from "./EventsPanel";
 import CountryPanel from "./CountryPanel";
 import { useFilterStore } from "../store/useFilterStore";
+import { getDataLookupName } from "../lib/countryNameMapping";
 import FiltersPanel from "./FiltersPanel";
 
 export interface LayoutProps {
@@ -106,10 +107,10 @@ export default function Layout({ children, mapRef, allEvents }: LayoutProps) {
     [allEvents]
   );
 
-  const countryEvents = useMemo(
-    () => allEvents.filter((event) => event.country === selectedCountry),
-    [allEvents, selectedCountry]
-  );
+  const countryEvents = useMemo(() => {
+    const cowLookup = getDataLookupName(selectedCountry ?? "");
+    return allEvents.filter((event) => event.country === cowLookup);
+  }, [allEvents, selectedCountry]);
 
   return (
     <div className={css({ display: "flex", height: "100vh", width: "100vw", flexDirection: "column", overflow: "hidden", md: { flexDirection: "row" } })}>

@@ -23,6 +23,7 @@ import {
 import { buildYhatPredictionProbMap } from "./lib/yhatPredictions";
 import { buildMapFilterExpression } from "./lib/filterHelpers";
 import { computeRiskThresholds, getRiskBucketBounds } from "./lib/riskBuckets";
+import { getDataLookupName, getCoHighlightNames } from "./lib/countryNameMapping";
 import { useMapHover } from "./hooks/useMapHover";
 import { useEscapeToClearSelection } from "./hooks/useEscapeToClearSelection";
 import { useClearSelectionOnMapClick } from "./hooks/useClearSelectionOnMapClick";
@@ -211,6 +212,7 @@ type DisplayedPrediction = CoupPrediction & {
 
 export default function App() {
   const mapRef = useRef<MapRef>(null);
+  const prevSelectedGeoNames = useRef<string[]>([]);
   const [mapLoaded, setMapLoaded] = useState(false);
   const [countriesGeoJSON, setCountriesGeoJSON] = useState<any>(null);
   const [selectedRiskCountry, setSelectedRiskCountry] = useState<string | null>(null);
@@ -224,6 +226,8 @@ export default function App() {
   const setSelectedEvent = useFilterStore((s) => s.setSelectedEvent);
   //const selectedCountry = useFilterStore((s) => s.selectedCountry);
   const setSelectedCountry = useFilterStore((s) => s.setSelectedCountry);
+  const selectedGeoNames = useFilterStore((s) => s.selectedGeoNames);
+  const setSelectedGeoNames = useFilterStore((s) => s.setSelectedGeoNames);
   const searchQuery = useFilterStore((s) => s.searchQuery);
   const selectedOutcomes = useFilterStore((s) => s.selectedOutcomes);
   const selectedRegions = useFilterStore((s) => s.selectedRegions);
@@ -303,7 +307,7 @@ export default function App() {
   }, [monthsAhead]);
 
   const selectedRiskCountryKey = useMemo(
-    () => normalizeCountryKey(selectedRiskCountry),
+    () => normalizeCountryKey(getDataLookupName(selectedRiskCountry ?? "")),
     [selectedRiskCountry],
   );
 
@@ -495,6 +499,17 @@ export default function App() {
     [riskThresholds],
   );
 
+  // Sync selected country outlines to map feature state
+  useEffect(() => {
+    const map = mapRef.current?.getMap();
+    if (!map || !mapLoaded) return;
+    for (const name of prevSelectedGeoNames.current)
+      map.setFeatureState({ source: "countries", id: name }, { selected: false });
+    for (const name of selectedGeoNames)
+      map.setFeatureState({ source: "countries", id: name }, { selected: true });
+    prevSelectedGeoNames.current = selectedGeoNames;
+  }, [selectedGeoNames, mapLoaded]);
+
   useEffect(() => {
     if (viewMode === "events") {
       setSelectedRiskCountry(null);
@@ -502,7 +517,8 @@ export default function App() {
       setSelectedEvent(null);
       setSelectedCountry(null);
     }
-  }, [viewMode, setSelectedEvent, setSelectedCountry]);
+    setSelectedGeoNames([]);
+  }, [viewMode, setSelectedEvent, setSelectedCountry, setSelectedGeoNames]);
 
   const filterExpression = useMemo(
     () =>
@@ -558,6 +574,7 @@ export default function App() {
           setSelectedCountry(countryName);
           setSelectedEvent(null);
           setSelectedRiskCountry(null);
+          setSelectedGeoNames([countryName, ...getCoHighlightNames(countryName)]);
           return;
         }
       }
@@ -611,6 +628,7 @@ export default function App() {
             setSelectedRiskCountry(nearestCountry);
             setSelectedCountry(null);
           }
+          setSelectedGeoNames([nearestCountry, ...getCoHighlightNames(nearestCountry)]);
           setSelectedEvent(null);
           return;
         }
@@ -619,8 +637,9 @@ export default function App() {
       setSelectedEvent(null);
       setSelectedCountry(null);
       setSelectedRiskCountry(null);
+      setSelectedGeoNames([]);
     },
-    [setSelectedEvent, setSelectedCountry, countriesGeoJSON, viewMode],
+    [setSelectedEvent, setSelectedCountry, setSelectedGeoNames, countriesGeoJSON, viewMode],
   );
 
   useClearSelectionOnMapClick({
@@ -711,10 +730,12 @@ export default function App() {
               setSelectedEvent(null);
               setSelectedCountry(null);
               setSelectedRiskCountry(countryName);
+              setSelectedGeoNames(countryName ? [countryName, ...getCoHighlightNames(countryName)] : []);
             } else {
               setSelectedEvent(null);
               setSelectedCountry(null);
               setSelectedRiskCountry(null);
+              setSelectedGeoNames([]);
             }
           }}
           onLoad={() => setMapLoaded(true)}
@@ -731,11 +752,26 @@ export default function App() {
           )}
 
           {viewMode === "events" && countriesGeoJSON && (
-            <Source id="countries" type="geojson" data={countriesGeoJSON}>
+            <Source id="countries" type="geojson" data={countriesGeoJSON} promoteId="name">
               <Layer
                 id="countries-fill"
                 type="fill"
+                beforeId="waterway_label"
                 paint={{ "fill-color": "rgba(0,0,0,0)", "fill-opacity": 0 }}
+              />
+              <Layer
+                id="countries-selected-outline"
+                type="line"
+                beforeId="waterway_label"
+                paint={{
+                  "line-color": "#f59e0b",
+                  "line-width": [
+                    "case",
+                    ["boolean", ["feature-state", "selected"], false],
+                    2.5,
+                    0,
+                  ] as any,
+                }}
               />
             </Source>
           )}
@@ -771,8 +807,9 @@ export default function App() {
 
         <PredictionPanel
           prediction={selectedPrediction}
+          displayName={selectedRiskCountry ?? undefined}
           riskThresholds={riskThresholds}
-          onClose={() => setSelectedRiskCountry(null)}
+          onClose={() => { setSelectedRiskCountry(null); setSelectedGeoNames([]); }}
           predictiveEnabled={predictiveEnabled}
           setPredictiveEnabled={setPredictiveEnabled}
           mode={predictiveMode}

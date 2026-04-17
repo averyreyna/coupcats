@@ -10,6 +10,7 @@ export interface FilterState {
   selectedTags: string[];
   selectedEvent: CoupEvent | null;
   selectedCountry: string | null;
+  selectedGeoNames: string[];
   yearRange: [number, number];
   viewMode: "events" | "risk" | "forecast";
 
@@ -23,6 +24,7 @@ export interface FilterState {
   reset: () => void;
   setSelectedEvent: (event: CoupEvent | null) => void;
   setSelectedCountry: (country: string | null) => void;
+  setSelectedGeoNames: (names: string[]) => void;
   setViewMode: (mode: "events" | "risk" | "forecast") => void;
 }
 
@@ -44,6 +46,7 @@ export const useFilterStore = create<FilterState>((set) => ({
   selectedTags: [],
   selectedEvent: null,
   selectedCountry: null,
+  selectedGeoNames: [],
   yearRange: [1950, 2026],
   viewMode: "events",
 
@@ -88,9 +91,11 @@ export const useFilterStore = create<FilterState>((set) => ({
       selectedTags: [],
       selectedEvent: null,
       selectedCountry: null,
+      selectedGeoNames: [],
       yearRange: [1950, 2026],
     }),
   setViewMode: (mode) => set({ viewMode: mode }),
   setSelectedEvent: (event) => set({ selectedEvent: event }),
   setSelectedCountry: (country) => set({ selectedCountry: country }),
+  setSelectedGeoNames: (names) => set({ selectedGeoNames: names }),
 }));
