@@ -550,3 +550,13 @@ export default function App() {
     </Layout>
   );
 }
+
+
+//Changes from old commit
+  // Predictions are now bundled locally — no async fetch needed
+  const allPredictions = useMemo<CoupPrediction[]>(
+    () => getPredictionFeatureCollection().features.map((f) => f.properties),
+    [],
+  );
+  const [selectedPrediction, setSelectedPrediction] = useState<CoupPrediction | null>(null);
+

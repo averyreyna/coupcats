@@ -114,3 +114,6 @@ export function buildChoroplethFillColor(
 
   return ["match", ["get", "name"], ...entries, NO_DATA_COLOR];
 }
+
+//Seems to be fine, but the changes I had were that pred.prediction_prob was changed to pred.yhat. Anything that uses
+// prediction_prob as a variable is wrong and from the old dataset, does not need to be accounted for.

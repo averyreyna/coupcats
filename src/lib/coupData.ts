@@ -1,4 +1,5 @@
 import type { CoupEvent, CoupFeatureCollection, CoupPrediction, PredictionFeatureCollection } from "../types/coup";
+import predictionsRaw from "../data/current_yhat.json";
 
 // Known mismatches between COW country names (in predictions) and GeoJSON ADMIN names
 export const COW_TO_ADMIN_ALIASES: Record<string, string> = {
@@ -9,7 +10,7 @@ export const COW_TO_ADMIN_ALIASES: Record<string, string> = {
   "congo":          "republic of the congo",
 };
 
-// Returns a Map<normalized-admin-name, prediction_prob | null> for enriching country polygons
+// Returns a Map<normalized-admin-name, yhat | null> for enriching country polygons
 export function buildPredictionProbMap(
   predictions: CoupPrediction[]
 ): Map<string, number | null> {
@@ -17,7 +18,7 @@ export function buildPredictionProbMap(
   for (const p of predictions) {
     const cowName = p.country.toLowerCase().trim();
     const key = COW_TO_ADMIN_ALIASES[cowName] ?? cowName;
-    map.set(key, p.prediction_prob ?? null);
+    map.set(key, p.yhat ?? null);
   }
   return map;
 }
@@ -48,12 +49,6 @@ export function getAllCoupEvents(): CoupEvent[] {
   );
 }
 
-// Newly added data from the github pull
-
-const GITHUB_URL = "https://raw.githubusercontent.com/thynec/CoupCats/refs/heads/main/recent_data.json";
-
-let cachedPredictions: PredictionFeatureCollection | null = null;
-
 //This creates the json file into a Geojson to match the formatting needed for the map, given we seem to need
 // a point dedicated on the map to add features onto the map this way
 function toPredictionFeatureCollection(
@@ -75,8 +70,8 @@ function toPredictionFeatureCollection(
           ...p,
           // Sanitize NaN from the source JSON (Python serializes float NaN as literal NaN,
           // which some parsers pass through; guard it here before it hits the map layer)
-          prediction_prob: typeof p.prediction_prob === "number" && isFinite(p.prediction_prob)
-            ? p.prediction_prob
+          prediction_prob: typeof p.yhat === "number" && isFinite(p.yhat)
+            ? p.yhat
             : null,
           latitude: coords.latitude,
           longitude: coords.longitude,
@@ -88,20 +83,14 @@ function toPredictionFeatureCollection(
   return {type: "FeatureCollection", features};
 }
 
-//Receives the prediction data from the github, GITHUB_URL is defined above
-export async function getPredictionFeatureCollection(): Promise<PredictionFeatureCollection> {
-  if(cachedPredictions) return cachedPredictions;
+// Built once at module load
+const predictionFeatureCollection: PredictionFeatureCollection =
+  toPredictionFeatureCollection(predictionsRaw as CoupPrediction[]);
 
-  const response = await fetch(GITHUB_URL);
-  if(!response.ok) throw new Error('Failed to fetch predictions: ${response.status}');
-
-  const predictions: CoupPrediction[] = await response.json();
-  cachedPredictions = toPredictionFeatureCollection(predictions);
-  return cachedPredictions;
+export function getPredictionFeatureCollection(): PredictionFeatureCollection {
+  return predictionFeatureCollection;
 }
 
-//Gets all of the prediction stats, we can edit this to only receive the desired stats to better optimize this feature
-export async function getAllPredictions(): Promise<CoupPrediction[]> {
-  const fc = await getPredictionFeatureCollection();
-  return (fc.features ?? []).map((f) => f.properties);
+export function getAllPredictions(): CoupPrediction[] {
+  return predictionFeatureCollection.features.map((f) => f.properties);
 }
