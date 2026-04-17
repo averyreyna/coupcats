@@ -114,3 +114,52 @@ export function buildChoroplethFillColor(
 
   return ["match", ["get", "name"], ...entries, NO_DATA_COLOR];
 }
+
+import type { CoupEvent } from "../types/coup";
+
+function eventScoreToColor(score: number): string {
+  const clamped = Math.max(0, Math.min(1, score));
+
+  const stops: [number, number, number][] = [
+    [0x22, 0xc5, 0x5e], // #22c55e green-500
+    [0xea, 0xb3, 0x08], // #eab308 yellow-500
+    [0xf9, 0x73, 0x16], // #f97316 orange-500
+    [0xef, 0x44, 0x44], // #ef4444 red-500
+  ];
+
+  const seg = clamped * (stops.length - 1);
+  const lo = Math.min(Math.floor(seg), stops.length - 2);
+  const t = seg - lo;
+  const [r1, g1, b1] = stops[lo];
+  const [r2, g2, b2] = stops[lo + 1];
+
+  const r = Math.round(r1 + (r2 - r1) * t);
+  const g = Math.round(g1 + (g2 - g1) * t);
+  const b = Math.round(b1 + (b2 - b1) * t);
+  return `#${r.toString(16).padStart(2, "0")}${g.toString(16).padStart(2, "0")}${b.toString(16).padStart(2, "0")}`;
+}
+
+export const EVENT_NO_DATA_COLOR = "#e5e7eb"; // gray-200 — neutral on the light map
+
+export function buildEventCountChoropleth(events: CoupEvent[]): any[] {
+  const counts = new Map<string, number>();
+  for (const e of events) {
+    const geoName = cowNameToGeoJsonAdmin(e.country);
+    counts.set(geoName, (counts.get(geoName) ?? 0) + 1);
+  }
+  const maxCount = Math.max(...counts.values(), 1);
+  const entries: string[] = [];
+  for (const [geoName, count] of counts) {
+    entries.push(geoName, eventScoreToColor(count / maxCount));
+  }
+  return ["match", ["get", "name"], ...entries, EVENT_NO_DATA_COLOR];
+}
+
+export function getMaxEventCount(events: CoupEvent[]): number {
+  const counts = new Map<string, number>();
+  for (const e of events) {
+    const geoName = cowNameToGeoJsonAdmin(e.country);
+    counts.set(geoName, (counts.get(geoName) ?? 0) + 1);
+  }
+  return counts.size === 0 ? 0 : Math.max(...counts.values());
+}

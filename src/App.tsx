@@ -10,6 +10,7 @@ import { type CoupEvent, type CoupPrediction } from "./types/coup";
 import PredictionPanel from "./components/PredictionPanel";
 import EventPopup from "./components/EventPopup";
 import MapLegend from "./components/MapLegend";
+import EventsHeatmapLegend from "./components/EventsHeatmapLegend";
 import Layout from "./components/Layout";
 import { useFilterStore } from "./store/useFilterStore";
 import { OUTCOME_COLORS, PREDICTION_NULL_COLOR } from "./lib/colors";
@@ -24,6 +25,7 @@ import { buildYhatPredictionProbMap } from "./lib/yhatPredictions";
 import { buildMapFilterExpression } from "./lib/filterHelpers";
 import { computeRiskThresholds, getRiskBucketBounds } from "./lib/riskBuckets";
 import { getDataLookupName, getCoHighlightNames } from "./lib/countryNameMapping";
+import { buildEventCountChoropleth, getMaxEventCount } from "./lib/riskColors";
 import { useMapHover } from "./hooks/useMapHover";
 import { useEscapeToClearSelection } from "./hooks/useEscapeToClearSelection";
 import { useClearSelectionOnMapClick } from "./hooks/useClearSelectionOnMapClick";
@@ -500,6 +502,7 @@ export default function App() {
     [riskThresholds],
   );
 
+<<<<<<< HEAD
   // Sync selected country outlines to map feature state
   useEffect(() => {
     const map = mapRef.current?.getMap();
@@ -510,6 +513,17 @@ export default function App() {
       map.setFeatureState({ source: "countries", id: name }, { selected: true });
     prevSelectedGeoNames.current = selectedGeoNames;
   }, [selectedGeoNames, mapLoaded]);
+=======
+  const eventChoroplethFillColor = useMemo(() => {
+    if (viewMode !== "events") return null;
+    return buildEventCountChoropleth(filteredEvents);
+  }, [viewMode, filteredEvents]);
+
+  const eventMaxCount = useMemo(() => {
+    if (viewMode !== "events") return 0;
+    return getMaxEventCount(filteredEvents);
+  }, [viewMode, filteredEvents]);
+>>>>>>> c86b791 (Add events heatmap choropleth with green-red color scale)
 
   useEffect(() => {
     if (viewMode === "events") {
@@ -678,7 +692,7 @@ export default function App() {
 
   useClearSelectionOnMapClick({
     mapRef,
-    layerIds: viewMode === "events" ? ["coup-circles"] : [],
+    layerIds: [],
     setSelectedEvent,
   });
 
@@ -746,8 +760,13 @@ export default function App() {
           mapStyle={MAP_STYLE}
           interactiveLayerIds={
             viewMode === "events"
+<<<<<<< HEAD
               ? ["coup-circles", "countries-fill"]
               : ["country-risk-fill", "countries-fill"]
+=======
+              ? ["countries-fill"]
+              : ["country-risk-fill"]
+>>>>>>> c86b791 (Add events heatmap choropleth with green-red color scale)
           }
           onMouseEnter={onMouseEnter}
           onMouseMove={onMouseMove}
@@ -755,7 +774,10 @@ export default function App() {
           onClick={(e) => {
             const features = e.features ?? [];
 
-            if (features.some((f) => f.layer?.id === "coup-circles")) {
+            if (
+              features.some((f) => f.layer?.id === "coup-circles") ||
+              features.some((f) => f.layer?.id === "countries-fill")
+            ) {
               onClick(e);
             } else if (features.some((f) => f.layer?.id === "country-risk-fill")) {
               const f = features.find((item) => item.layer?.id === "country-risk-fill");
@@ -775,6 +797,7 @@ export default function App() {
           }}
           onLoad={() => setMapLoaded(true)}
         >
+<<<<<<< HEAD
           {viewMode === "events" && (
             <Source
               id="coups"
@@ -793,6 +816,17 @@ export default function App() {
                 type="fill"
                 beforeId="waterway_label"
                 paint={{ "fill-color": "rgba(0,0,0,0)", "fill-opacity": 0 }}
+=======
+          {viewMode === "events" && countriesGeoJSON && (
+            <Source id="countries" type="geojson" data={countriesGeoJSON}>
+              <Layer
+                id="countries-fill"
+                type="fill"
+                paint={{
+                  "fill-color": eventChoroplethFillColor ?? "rgba(0,0,0,0)",
+                  "fill-opacity": eventChoroplethFillColor ? 0.65 : 0,
+                }}
+>>>>>>> c86b791 (Add events heatmap choropleth with green-red color scale)
               />
               <Layer
                 id="countries-outline"
@@ -878,7 +912,9 @@ export default function App() {
           monthsLabel={viewMode === "forecast" ? monthsAhead : futureMonths}
         />
 
-        <MapLegend riskBucketBounds={riskBucketBounds} />
+        {viewMode === "events"
+          ? <EventsHeatmapLegend maxCount={eventMaxCount} />
+          : <MapLegend riskBucketBounds={riskBucketBounds} />}
       </div>
     </Layout>
   );
