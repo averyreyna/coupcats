@@ -97,7 +97,6 @@ function StatRow({
       )
     }
   }
-}
 
 export default function PredictionPanel({ prediction, riskThresholds, onClose }: Props) {
   if (!prediction) return null;
@@ -291,10 +290,6 @@ export default function PredictionPanel({ prediction, riskThresholds, onClose }:
             label="Cold War Period" 
             value={safeNum(prediction.cold)}
             display={safeNum(prediction.cold) === 1 ? "Yes" : "No"} />
-          <StatRow
-            label="Foreign Visit" 
-            value={safeNum(prediction.visit)}
-            display={safeNum(prediction.visit) === 1 ? "Yes" : "No"} />
         </Section>
       </div>
     </div>
