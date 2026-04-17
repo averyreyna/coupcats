@@ -26,6 +26,7 @@ type DisplayedPrediction = CoupPrediction & {
 
 interface Props {
   prediction: DisplayedPrediction | null;
+  displayName?: string;
   riskThresholds: RiskThresholds;
   onClose: () => void;
   predictiveEnabled: boolean;
@@ -143,6 +144,7 @@ function StatRow({
 
 export default function PredictionPanel({
   prediction,
+  displayName,
   riskThresholds,
   onClose,
   predictiveEnabled,
@@ -222,7 +224,7 @@ export default function PredictionPanel({
               fontSize: "xl",
             })}
           >
-            {prediction.country}
+            {displayName ?? prediction.country}
           </h2>
           <p
             className={css({

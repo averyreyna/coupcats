@@ -21,6 +21,7 @@ const COW_TO_GEOJSON: Record<string, string> = {
   "Tanzania": "United Republic of Tanzania",
   "United States": "United States of America",
   "Yugoslavia": "Republic of Serbia",
+  "Ivory Coast": "Côte d'Ivoire",
 };
 
 /**
@@ -36,9 +37,17 @@ export function cowNameToGeoJsonAdmin(cowName: string): string {
  * Used when a territory (Greenland) or renamed country (Serbia, Cabo Verde) is clicked.
  */
 const GEOJSON_TO_COW_DATA: Record<string, string> = {
-  "Greenland":          "Denmark",
-  "Republic of Serbia": "Yugoslavia",
-  "Cabo Verde":         "Cape Verde",
+  "Greenland":                          "Denmark",
+  "Republic of Serbia":                 "Yugoslavia",
+  "Cabo Verde":                         "Cape Verde",
+  "United States of America":           "United States",
+  "United Republic of Tanzania":        "Tanzania",
+  "Antigua and Barbuda":                "Antigua & Barbuda",
+  "The Bahamas":                        "Bahamas",
+  "São Tomé and Principe":              "Sao Tome and Principe",
+  "Saint Kitts and Nevis":              "St. Kitts and Nevis",
+  "Saint Lucia":                        "St. Lucia",
+  "Saint Vincent and the Grenadines":   "St. Vincent and the Grenadines",
 };
 
 export function getDataLookupName(geoName: string): string {
