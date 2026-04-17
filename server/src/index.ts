@@ -1,11 +1,19 @@
 import express, { Request, Response } from "express";
 import cors from "cors";
 import dotenv from "dotenv";
+import { readFileSync } from "fs";
+import { dirname, join } from "path";
+import { fileURLToPath } from "url";
 import forecastRouter from "./routes/forecast.js";
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
 
 dotenv.config();
 
 const app = express();
+const riskData: any[] = JSON.parse(
+  readFileSync(join(__dirname, "../../src/data/current_yhat.json"), "utf-8"),
+);
 const PORT = process.env.PORT ?? 3001;
 const R_API_URL = process.env.R_API_URL ?? "http://localhost:8000";
 
@@ -36,6 +44,29 @@ app.post("/api/predict", async (req: Request, res: Response) => {
   } catch (err) {
     res.status(502).json({ error: "R API unreachable" });
   }
+});
+
+app.get("/api/risk/all", (_req, res) => {
+  const formatted = riskData.map((item) => ({
+    country: item.country,
+    risk: item.yhat,
+  }));
+  res.json(formatted);
+});
+
+app.get("/api/countries", (_req, res) => {
+  res.json(riskData.map((item) => item.country));
+});
+
+app.get("/api/countries/:country", (req, res) => {
+  const countryData = riskData.find(
+    (item) => item.country.toLowerCase() === req.params.country.toLowerCase(),
+  );
+  if (!countryData) {
+    res.status(404).json({ error: "Country not found" });
+    return;
+  }
+  res.json({ country: countryData.country, risk: countryData.yhat, raw: countryData });
 });
 
 app.listen(PORT, () => {
