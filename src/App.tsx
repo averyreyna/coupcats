@@ -27,11 +27,17 @@ import { useMapHover } from "./hooks/useMapHover";
 import { useEscapeToClearSelection } from "./hooks/useEscapeToClearSelection";
 import { useClearSelectionOnMapClick } from "./hooks/useClearSelectionOnMapClick";
 import currentYhatData from "./data/current_yhat.json";
+import {
+  DEFAULT_PREDICTIVE_SLIDERS,
+  type PredictiveCountryData,
+  type PredictiveMode,
+  type PredictiveSliderKey,
+  type PredictiveSliderPercents,
+} from "./types/predictive";
 
 const MAP_STYLE =
   "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json";
 
-// maplibre expressions: radius by feature-state hover, color by outcome property
 const circleLayerPaint: CircleLayerSpecification["paint"] = {
   "circle-radius": [
     "case",
@@ -79,13 +85,13 @@ function buildCountryHeatmapLayerStyle(
         [
           "step",
           ["get", "prediction_prob"],
-          "#22c55e", // default = very low
+          "#22c55e",
           safeModerate,
-          "#eab308", // moderate
+          "#eab308",
           safeElevated,
-          "#f97316", // elevated
+          "#f97316",
           safeHigh,
-          "#ef4444", // high
+          "#ef4444",
         ],
       ],
       "fill-opacity": 0.65,
@@ -93,16 +99,136 @@ function buildCountryHeatmapLayerStyle(
   };
 }
 
+function num(value: unknown, fallback = 0): number {
+  return typeof value === "number" && Number.isFinite(value) ? value : fallback;
+}
+
+function logistic(x: number): number {
+  return 1 / (1 + Math.exp(-x));
+}
+
+function normalizeCountryKey(value: string | null | undefined): string {
+  if (!value) return "";
+  const baseKey = value.toLowerCase().trim();
+  return COW_TO_ADMIN_ALIASES[baseKey] ?? baseKey;
+}
+
+function getPredictionValue(
+  row: Partial<CoupPrediction> & { yhat?: unknown },
+): number | null {
+  const prob =
+    typeof row.prediction_prob === "number" && Number.isFinite(row.prediction_prob)
+      ? row.prediction_prob
+      : null;
+  if (prob != null) return prob;
+
+  const yhat =
+    typeof row.yhat === "number" && Number.isFinite(row.yhat)
+      ? row.yhat
+      : null;
+  if (yhat != null) return yhat;
+
+  return null;
+}
+
+function computeScenarioProbability(
+  original: PredictiveCountryData,
+  sliderPercents: PredictiveSliderPercents,
+): number {
+  const Trade = num(original.Trade) * (num(sliderPercents.Trade, 100) / 100);
+  const Change_GDP_per_cap =
+    num(original.Change_GDP_per_cap) *
+    (num(sliderPercents.Change_GDP_per_cap, 100) / 100);
+  const Democracy_level =
+    num(original.Democracy_level) *
+    (num(sliderPercents.Democracy_level, 100) / 100);
+  const Women_political_participation =
+    num(original.Women_political_participation) *
+    (num(sliderPercents.Women_political_participation, 100) / 100);
+  const Protests =
+    num(original.Protests) * (num(sliderPercents.Protests, 100) / 100);
+  const Military_regime = sliderPercents.Military_regime === 0 ? 0 : 1;
+  const Military_influence =
+    num(original.Military_influence) *
+    (num(sliderPercents.Military_influence, 100) / 100);
+
+  const Cold_war = num(original.Cold_war);
+  const e_asia_pacific = num(original.e_asia_pacific);
+  const LA_carrib = num(original.LA_carrib);
+  const MENA = num(original.MENA);
+  const N_america = num(original.N_america);
+  const S_asia = num(original.S_asia);
+  const Sub_africa = num(original.Sub_africa);
+  const pce = num(original.pce);
+  const pce2 = num(original.pce2);
+  const pce3 = num(original.pce3);
+  const Democracy_squared = Democracy_level * Democracy_level;
+  const GDP_per_cap = num(original.GDP_per_cap);
+  const Civil_wars = num(original.Civil_wars);
+
+  const intercept = -6.607;
+
+  const x =
+    intercept +
+    -7.367e-2 * Trade +
+    -3.559e0 * Change_GDP_per_cap +
+    7.9264e0 * Democracy_level +
+    -9.8963e-1 * Women_political_participation +
+    2.5498e-1 * Protests +
+    1.2107e0 * Military_regime +
+    8.7481e-1 * Military_influence +
+    4.5741e-1 * Cold_war +
+    2.3207e-1 * e_asia_pacific +
+    8.2664e-1 * LA_carrib +
+    7.1901e-1 * MENA +
+    -1.1423e1 * N_america +
+    4.1404e-1 * S_asia +
+    7.9359e-1 * Sub_africa +
+    -5.7242e-3 * pce +
+    1.0202e-5 * pce2 +
+    -9.68e-9 * pce3 +
+    -8.5157e0 * Democracy_squared +
+    -1.104e-1 * GDP_per_cap +
+    2.4043e-1 * Civil_wars;
+
+  return logistic(x);
+}
+
+function computeAtLeastOneCoupWithinMonths(
+  monthlyProbability: number,
+  months: number,
+): number {
+  const p = Math.max(0, Math.min(1, monthlyProbability));
+  return 1 - Math.pow(1 - p, months);
+}
+
+type DisplayedPrediction = CoupPrediction & {
+  yhat?: number | null;
+  monthsAhead?: number;
+  rendered_prediction_prob: number | null;
+  rendered_months_prob: number;
+};
+
 export default function App() {
   const mapRef = useRef<MapRef>(null);
   const [mapLoaded, setMapLoaded] = useState(false);
   const [countriesGeoJSON, setCountriesGeoJSON] = useState<any>(null);
+  const [selectedRiskCountry, setSelectedRiskCountry] = useState<string | null>(null);
+  const [monthsAhead, setMonthsAhead] = useState<1 | 2 | 3>(1);
 
   const allEvents = useMemo(() => getAllCoupEvents(), []);
   const yearRange = useFilterStore((s) => s.yearRange);
   const viewMode = useFilterStore((s) => s.viewMode);
 
-  const [monthsAhead, setMonthsAhead] = useState<1 | 2 | 3>(1);
+  const selectedEvent = useFilterStore((s) => s.selectedEvent);
+  const setSelectedEvent = useFilterStore((s) => s.setSelectedEvent);
+  //const selectedCountry = useFilterStore((s) => s.selectedCountry);
+  const setSelectedCountry = useFilterStore((s) => s.setSelectedCountry);
+  const searchQuery = useFilterStore((s) => s.searchQuery);
+  const selectedOutcomes = useFilterStore((s) => s.selectedOutcomes);
+  const selectedRegions = useFilterStore((s) => s.selectedRegions);
+  const dateRange = useFilterStore((s) => s.dateRange);
+  const selectedTags = useFilterStore((s) => s.selectedTags);
 
   const filteredEvents = useMemo(() => {
     return allEvents.filter((event) => {
@@ -110,7 +236,31 @@ export default function App() {
     });
   }, [allEvents, yearRange]);
 
-  // Load countries GeoJSON on mount
+  const [predictiveEnabled, setPredictiveEnabled] = useState(false);
+  const [predictiveMode, setPredictiveMode] =
+    useState<PredictiveMode>("scenario");
+  const [futureMonths, setFutureMonths] = useState(3);
+  const [predictiveSliderPercents, setPredictiveSliderPercents] = useState(
+    DEFAULT_PREDICTIVE_SLIDERS,
+  );
+
+  const handlePredictiveSliderChange = useCallback(
+    (key: PredictiveSliderKey, value: number) => {
+      setPredictiveSliderPercents((prev) => ({
+        ...prev,
+        [key]: value,
+      }));
+    },
+    [],
+  );
+
+  const resetPredictiveMode = useCallback(() => {
+    setPredictiveEnabled(false);
+    setPredictiveMode("scenario");
+    setFutureMonths(3);
+    setPredictiveSliderPercents(DEFAULT_PREDICTIVE_SLIDERS);
+  }, []);
+
   useEffect(() => {
     fetch(
       "https://raw.githubusercontent.com/datasets/geo-countries/master/data/countries.geojson",
@@ -121,11 +271,7 @@ export default function App() {
   }, []);
 
   const [riskPredictions, setRiskPredictions] = useState<CoupPrediction[]>([]);
-  const [forecastPredictions, setForecastPredictions] = useState<
-    CoupPrediction[]
-  >([]);
-  const [selectedPrediction, setSelectedPrediction] =
-    useState<CoupPrediction | null>(null);
+  const [forecastPredictions, setForecastPredictions] = useState<CoupPrediction[]>([]);
 
   useEffect(() => {
     getPredictionFeatureCollection()
@@ -138,24 +284,130 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    const rows = (currentYhatData as CoupPrediction[]).map((item) => {
-      const p = Number(item.yhat);
-      const baseYhat = isFinite(p) ? p : 0;
+    const rows = (currentYhatData as Array<CoupPrediction & { yhat?: number }>).map(
+      (item) => {
+        const p = Number(item.yhat);
+        const baseYhat = Number.isFinite(p) ? p : 0;
+        const cumulative = 1 - Math.pow(1 - baseYhat, monthsAhead);
 
-      return {
-        ...item,
-        monthsAhead,
-        yhat: 1 - Math.pow(1 - baseYhat, monthsAhead),
-      };
-    });
+        return {
+          ...item,
+          monthsAhead,
+          yhat: cumulative,
+          prediction_prob: cumulative,
+        };
+      },
+    );
 
     setForecastPredictions(rows);
   }, [monthsAhead]);
 
-  // Enrich countries GeoJSON with prediction_prob for the heatmap fill layer
+  const selectedRiskCountryKey = useMemo(
+    () => normalizeCountryKey(selectedRiskCountry),
+    [selectedRiskCountry],
+  );
+
+  const displayedRiskPredictionData = useMemo<DisplayedPrediction[]>(() => {
+    if (riskPredictions.length === 0) return [];
+
+    return riskPredictions.map((row) => {
+      const baseMonthly = row.prediction_prob ?? 0;
+      const rowKey = normalizeCountryKey(row.country);
+      const isSelectedCountry =
+        selectedRiskCountryKey.length > 0 && rowKey === selectedRiskCountryKey;
+
+      if (!predictiveEnabled) {
+        return {
+          ...row,
+          rendered_prediction_prob: row.prediction_prob ?? null,
+          rendered_months_prob: computeAtLeastOneCoupWithinMonths(
+            baseMonthly,
+            futureMonths,
+          ),
+        };
+      }
+
+      if (predictiveMode === "scenario" && isSelectedCountry) {
+        try {
+          const scenarioProbability = computeScenarioProbability(
+            row as unknown as PredictiveCountryData,
+            predictiveSliderPercents,
+          );
+
+          return {
+            ...row,
+            prediction_prob: scenarioProbability,
+            rendered_prediction_prob: scenarioProbability,
+            rendered_months_prob: computeAtLeastOneCoupWithinMonths(
+              scenarioProbability,
+              futureMonths,
+            ),
+          };
+        } catch (error) {
+          console.error("Scenario prediction failed:", row.country, error);
+        }
+      }
+
+      return {
+        ...row,
+        rendered_prediction_prob: row.prediction_prob ?? null,
+        rendered_months_prob: computeAtLeastOneCoupWithinMonths(
+          baseMonthly,
+          futureMonths,
+        ),
+      };
+    });
+  }, [
+    riskPredictions,
+    predictiveEnabled,
+    predictiveMode,
+    predictiveSliderPercents,
+    futureMonths,
+    selectedRiskCountryKey,
+  ]);
+
+  const displayedForecastPredictionData = useMemo<DisplayedPrediction[]>(() => {
+    return forecastPredictions.map((row) => {
+      const forecastProb = getPredictionValue(row) ?? 0;
+
+      return {
+        ...row,
+        prediction_prob: forecastProb,
+        rendered_prediction_prob: forecastProb,
+        rendered_months_prob: forecastProb,
+      };
+    });
+  }, [forecastPredictions]);
+
+  const selectedPrediction = useMemo<DisplayedPrediction | null>(() => {
+    if (!selectedRiskCountryKey) return null;
+
+    const source =
+      viewMode === "forecast"
+        ? displayedForecastPredictionData
+        : displayedRiskPredictionData;
+
+    const match = source.find(
+      (row) => normalizeCountryKey(row.country) === selectedRiskCountryKey,
+    );
+
+    return match ?? null;
+  }, [
+    selectedRiskCountryKey,
+    viewMode,
+    displayedForecastPredictionData,
+    displayedRiskPredictionData,
+  ]);
+
   const riskCountriesGeoJSON = useMemo(() => {
-    if (!countriesGeoJSON || riskPredictions.length === 0) return null;
-    const probMap = buildPredictionProbMap(riskPredictions);
+    if (!countriesGeoJSON || displayedRiskPredictionData.length === 0) return null;
+
+    const probMap = buildPredictionProbMap(
+      displayedRiskPredictionData.map((row) => ({
+        ...row,
+        prediction_prob: row.rendered_prediction_prob,
+      })),
+    );
 
     return {
       ...countriesGeoJSON,
@@ -163,19 +415,24 @@ export default function App() {
         const admin = (f.properties?.ADMIN ?? "").toLowerCase().trim();
         const name = (f.properties?.name ?? "").toLowerCase().trim();
         const prob = probMap.get(admin) ?? probMap.get(name) ?? null;
-        return { ...f, properties: { ...f.properties, prediction_prob: prob } };
+
+        return {
+          ...f,
+          properties: {
+            ...f.properties,
+            prediction_prob: prob,
+          },
+        };
       }),
     };
-  }, [countriesGeoJSON, riskPredictions]);
+  }, [countriesGeoJSON, displayedRiskPredictionData]);
 
   const forecastCountriesGeoJSON = useMemo(() => {
     if (!countriesGeoJSON || forecastPredictions.length === 0) return null;
 
     const probMap = buildYhatPredictionProbMap(forecastPredictions);
 
-    let matchedCount = 0;
-
-    const enriched = {
+    return {
       ...countriesGeoJSON,
       features: countriesGeoJSON.features.map((f: any) => {
         const admin = (f.properties?.ADMIN ?? "").toLowerCase().trim();
@@ -192,30 +449,35 @@ export default function App() {
             return key === admin || key === name;
           });
 
-          prob =
-            matchedPrediction?.prediction_prob ??
-            matchedPrediction?.yhat ??
-            null;
+          prob = getPredictionValue(matchedPrediction ?? {}) ?? null;
         }
-
-        if (prob != null) matchedCount++;
 
         return {
           ...f,
-          properties: { ...f.properties, prediction_prob: prob },
+          properties: {
+            ...f.properties,
+            prediction_prob: prob,
+          },
         };
       }),
     };
-
-    console.log("forecast predictions:", forecastPredictions.length);
-    console.log("matched countries:", matchedCount);
-
-    return enriched;
   }, [countriesGeoJSON, forecastPredictions]);
 
+  const activeThresholdRows = useMemo(() => {
+    const source =
+      viewMode === "forecast"
+        ? displayedForecastPredictionData
+        : displayedRiskPredictionData;
+
+    return source.map((row) => ({
+      ...row,
+      prediction_prob: row.rendered_prediction_prob,
+    }));
+  }, [viewMode, displayedForecastPredictionData, displayedRiskPredictionData]);
+
   const riskThresholds = useMemo(
-    () => computeRiskThresholds(riskPredictions),
-    [riskPredictions],
+    () => computeRiskThresholds(activeThresholdRows),
+    [activeThresholdRows],
   );
 
   const riskBucketBounds = useMemo(
@@ -233,25 +495,15 @@ export default function App() {
     [riskThresholds],
   );
 
-  const selectedEvent = useFilterStore((s) => s.selectedEvent);
-  const setSelectedEvent = useFilterStore((s) => s.setSelectedEvent);
-  const setSelectedCountry = useFilterStore((s) => s.setSelectedCountry);
-  const searchQuery = useFilterStore((s) => s.searchQuery);
-  const selectedOutcomes = useFilterStore((s) => s.selectedOutcomes);
-  const selectedRegions = useFilterStore((s) => s.selectedRegions);
-  const dateRange = useFilterStore((s) => s.dateRange);
-  const selectedTags = useFilterStore((s) => s.selectedTags);
-
-  // Clear cross-mode selections when switching views
   useEffect(() => {
     if (viewMode === "events") {
-      setSelectedPrediction(null);
+      setSelectedRiskCountry(null);
     } else {
       setSelectedEvent(null);
+      setSelectedCountry(null);
     }
-  }, [viewMode]);
+  }, [viewMode, setSelectedEvent, setSelectedCountry]);
 
-  // Build filter expression based on current filter state
   const filterExpression = useMemo(
     () =>
       buildMapFilterExpression(
@@ -289,32 +541,27 @@ export default function App() {
 
   const onClick = useCallback(
     (e: MapLayerMouseEvent) => {
-      // Prioritize coup circles over countries
-      const coupFeature = e.features?.find(
-        (f) => f.layer?.id === "coup-circles",
-      );
+      const coupFeature = e.features?.find((f) => f.layer?.id === "coup-circles");
       if (coupFeature) {
         const event = coupFeature.properties as CoupEvent;
         setSelectedEvent(event);
         setSelectedCountry(event.country);
+        setSelectedRiskCountry(null);
         return;
       }
 
-      // Check if clicking on a country
-      const countryFeature = e.features?.find(
-        (f) => f.layer?.id === "countries-fill",
-      );
+      const countryFeature = e.features?.find((f) => f.layer?.id === "countries-fill");
       if (countryFeature) {
         const countryName =
           countryFeature.properties?.ADMIN || countryFeature.properties?.name;
         if (countryName) {
           setSelectedCountry(countryName);
           setSelectedEvent(null);
+          setSelectedRiskCountry(null);
           return;
         }
       }
 
-      // Check if clicking on a country (fallback manual calculation)
       if (countriesGeoJSON && countriesGeoJSON.features) {
         let nearestCountry: string | null = null;
         let minDistance = Infinity;
@@ -329,18 +576,15 @@ export default function App() {
 
           let coords: any[] = [];
 
-          // Handle both Polygon and MultiPolygon
           if (geometry.type === "Polygon" && geometry.coordinates[0]) {
             coords = geometry.coordinates[0];
           } else if (geometry.type === "MultiPolygon") {
-            // For MultiPolygon, use the first polygon's exterior ring
             if (geometry.coordinates[0]?.[0]) {
               coords = geometry.coordinates[0][0];
             }
           }
 
           if (coords.length > 0) {
-            // Calculate centroid
             const centroidLng =
               coords.reduce((sum: number, c: any) => sum + c[0], 0) /
               coords.length;
@@ -359,19 +603,24 @@ export default function App() {
           }
         }
 
-        // Select if within a reasonable distance (15 degrees should be sufficient)
         if (nearestCountry && minDistance < 15) {
-          setSelectedCountry(nearestCountry);
+          if (viewMode === "events") {
+            setSelectedCountry(nearestCountry);
+            setSelectedRiskCountry(null);
+          } else {
+            setSelectedRiskCountry(nearestCountry);
+            setSelectedCountry(null);
+          }
           setSelectedEvent(null);
           return;
         }
       }
 
-      // No country or coup clicked
       setSelectedEvent(null);
       setSelectedCountry(null);
+      setSelectedRiskCountry(null);
     },
-    [setSelectedEvent, setSelectedCountry, countriesGeoJSON],
+    [setSelectedEvent, setSelectedCountry, countriesGeoJSON, viewMode],
   );
 
   useClearSelectionOnMapClick({
@@ -384,9 +633,7 @@ export default function App() {
 
   return (
     <Layout mapRef={mapRef} allEvents={allEvents}>
-      <div
-        className={css({ position: "relative", height: "full", width: "full" })}
-      >
+      <div className={css({ position: "relative", height: "full", width: "full" })}>
         {!mapLoaded && (
           <div
             className={css({
@@ -453,36 +700,25 @@ export default function App() {
           onMouseLeave={onMouseLeave}
           onClick={(e) => {
             const features = e.features ?? [];
+
             if (features.some((f) => f.layer?.id === "coup-circles")) {
               onClick(e);
-            } else if (
-              features.some((f) => f.layer?.id === "country-risk-fill")
-            ) {
-              const f = features.find(
-                (f) => f.layer?.id === "country-risk-fill",
-              )!;
-              const admin = (f.properties?.ADMIN ?? "").toLowerCase().trim();
-              const name = (f.properties?.name ?? "").toLowerCase().trim();
+            } else if (features.some((f) => f.layer?.id === "country-risk-fill")) {
+              const f = features.find((item) => item.layer?.id === "country-risk-fill");
+              const countryName =
+                f?.properties?.ADMIN ?? f?.properties?.name ?? null;
 
-              const predictionSet =
-                viewMode === "forecast" ? forecastPredictions : riskPredictions;
-
-              const match = predictionSet.find((p) => {
-                const key =
-                  COW_TO_ADMIN_ALIASES[p.country.toLowerCase().trim()] ??
-                  p.country.toLowerCase().trim();
-
-                return key === admin || key === name;
-              });
-              setSelectedPrediction(match ?? null);
+              setSelectedEvent(null);
+              setSelectedCountry(null);
+              setSelectedRiskCountry(countryName);
             } else {
               setSelectedEvent(null);
-              setSelectedPrediction(null);
+              setSelectedCountry(null);
+              setSelectedRiskCountry(null);
             }
           }}
           onLoad={() => setMapLoaded(true)}
         >
-          {/* Historical events layer — events mode only */}
           {viewMode === "events" && (
             <Source
               id="coups"
@@ -494,7 +730,6 @@ export default function App() {
             </Source>
           )}
 
-          {/* Countries fill layer — events mode only */}
           {viewMode === "events" && countriesGeoJSON && (
             <Source id="countries" type="geojson" data={countriesGeoJSON}>
               <Layer
@@ -505,20 +740,15 @@ export default function App() {
             </Source>
           )}
 
-          {/* Country risk heatmap — risk mode + predictive mode */}
           {viewMode === "risk" && riskCountriesGeoJSON && (
-            <Source
-              id="country-risk"
-              type="geojson"
-              data={riskCountriesGeoJSON}
-            >
+            <Source id="country-risk" type="geojson" data={riskCountriesGeoJSON}>
               <Layer {...countryHeatmapLayerStyle} />
             </Source>
           )}
 
           {viewMode === "forecast" && forecastCountriesGeoJSON && (
             <Source
-              id="country-forecast"
+              id="country-risk"
               type="geojson"
               data={forecastCountriesGeoJSON}
             >
@@ -526,7 +756,6 @@ export default function App() {
             </Source>
           )}
 
-          {/* Historical event popup */}
           {selectedEvent && (
             <Popup
               longitude={selectedEvent.longitude}
@@ -543,20 +772,22 @@ export default function App() {
         <PredictionPanel
           prediction={selectedPrediction}
           riskThresholds={riskThresholds}
-          onClose={() => setSelectedPrediction(null)}
+          onClose={() => setSelectedRiskCountry(null)}
+          predictiveEnabled={predictiveEnabled}
+          setPredictiveEnabled={setPredictiveEnabled}
+          mode={predictiveMode}
+          setMode={setPredictiveMode}
+          sliderPercents={predictiveSliderPercents}
+          onSliderChange={handlePredictiveSliderChange}
+          futureMonths={futureMonths}
+          setFutureMonths={setFutureMonths}
+          onReset={resetPredictiveMode}
+          showPredictiveControls={viewMode === "risk"}
+          monthsLabel={viewMode === "forecast" ? monthsAhead : futureMonths}
         />
+
         <MapLegend riskBucketBounds={riskBucketBounds} />
       </div>
     </Layout>
   );
 }
-
-
-//Changes from old commit
-  // Predictions are now bundled locally — no async fetch needed
-  const allPredictions = useMemo<CoupPrediction[]>(
-    () => getPredictionFeatureCollection().features.map((f) => f.properties),
-    [],
-  );
-  const [selectedPrediction, setSelectedPrediction] = useState<CoupPrediction | null>(null);
-

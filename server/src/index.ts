@@ -46,7 +46,6 @@ app.listen(PORT, () => {
   );
 });
 
-
 //My changes from old commit <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
 // Load predictions from the local file at startup instead of fetching from GitHub
