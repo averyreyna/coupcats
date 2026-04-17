@@ -1,7 +1,13 @@
 import { css } from "styled-system/css";
+import { predictionColors } from "../design-system/tokens";
 import { EVENT_NO_DATA_COLOR } from "../lib/riskColors";
 
-const GRADIENT_STOPS = ["#22c55e", "#eab308", "#f97316", "#ef4444"];
+const GRADIENT_STOPS = [
+  predictionColors.veryLow,
+  predictionColors.moderate,
+  predictionColors.elevated,
+  predictionColors.high,
+];
 
 interface EventsHeatmapLegendProps {
   maxCount: number;
@@ -51,37 +57,21 @@ const swatchStyle = css({
   borderColor: "var(--colors-border-strong)",
 });
 
-export default function EventsHeatmapLegend({ maxCount }: EventsHeatmapLegendProps) {
-  const gradientCSS = `linear-gradient(to right, ${GRADIENT_STOPS.join(", ")})`;
+const BUCKET_LABELS = ["Very Low", "Moderate", "Elevated", "High"];
 
+export default function EventsHeatmapLegend({ maxCount }: EventsHeatmapLegendProps) {
   return (
     <div className={legendStyle}>
-      <div className={labelStyle}>Coup Event Frequency</div>
-      <div className={css({ display: "flex", flexDirection: "column", gap: "1.5" })}>
-        <div
-          className={css({
-            width: "full",
-            height: "3",
-            borderRadius: "sm",
-            borderWidth: "1px",
-            borderStyle: "solid",
-            borderColor: "var(--colors-border-strong)",
-          })}
-          style={{ background: gradientCSS }}
-        />
-        <div
-          className={css({
-            display: "flex",
-            justifyContent: "space-between",
-            fontSize: "xs",
-            color: "var(--colors-text-secondary)",
-          })}
-        >
-          <span>Fewer</span>
-          <span>More</span>
-        </div>
+      <div className={labelStyle}>Historical Coup Activity</div>
+      <div className={css({ display: "flex", flexDirection: "column", gap: "1" })}>
+        {GRADIENT_STOPS.map((color, i) => (
+          <div key={color} className={rowStyle}>
+            <span className={swatchStyle} style={{ backgroundColor: color }} />
+            {BUCKET_LABELS[i]}
+          </div>
+        ))}
         {maxCount > 0 && (
-          <div className={css({ fontSize: "xs", color: "var(--colors-text-muted)", fontStyle: "italic" })}>
+          <div className={css({ fontSize: "xs", color: "var(--colors-text-muted)", fontStyle: "italic", marginTop: "1" })}>
             Highest: {maxCount} events
           </div>
         )}
