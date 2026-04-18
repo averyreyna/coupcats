@@ -60,7 +60,7 @@ function makeStrictlyIncreasing(values: [number, number, number]): [number, numb
 
 export function getValidPredictionProbabilities(predictions: CoupPrediction[]): number[] {
   return predictions
-    .map((p) => p.prediction_prob)
+    .map((p) => p.yhat)
     .filter(isValidProbability)
     .sort((a, b) => a - b);
 }
@@ -89,7 +89,7 @@ export function classifyRisk(
   probability: number | null | undefined,
   thresholds: RiskThresholds,
 ): RiskBucketMetadata | null {
-  if (!isValidProbability(probability)) return null;
+  if (probability == null || !isFinite(probability)) return null;
   if (probability < thresholds.moderateMin) return RISK_BUCKET_META.veryLow;
   if (probability < thresholds.elevatedMin) return RISK_BUCKET_META.moderate;
   if (probability < thresholds.highMin) return RISK_BUCKET_META.elevated;

@@ -44,17 +44,14 @@ interface Props {
 
 function StatBar({ value, invert = false }: { value: number; invert?: boolean }) {
   const pct = Math.min(Math.max(value, 0), 1) * 100;
-  const fillColor = invert
-    ? value > 0.66
+
+  const effective = invert ? 1 - value : value;
+  const fillColor =
+    effective > 0.66
       ? predictionColors.high
-      : value > 0.33
+      : effective > 0.33
         ? predictionColors.moderate
-        : predictionColors.veryLow
-    : value > 0.66
-      ? predictionColors.veryLow
-      : value > 0.33
-        ? predictionColors.moderate
-        : predictionColors.high;
+        : predictionColors.veryLow;
 
   return (
     <div
@@ -161,7 +158,7 @@ export default function PredictionPanel({
 }: Props) {
   if (!prediction) return null;
 
-  const prob = prediction.rendered_prediction_prob ?? prediction.prediction_prob;
+  const prob = prediction.rendered_prediction_prob ?? prediction.yhat;
   const monthsProb = prediction.rendered_months_prob;
   const hasValidProb = prob != null && isFinite(prob);
 
@@ -233,7 +230,7 @@ export default function PredictionPanel({
               marginTop: "0.5",
             })}
           >
-            {prediction.year} · Month {prediction.month}
+            {prediction.year}
           </p>
         </div>
         <button
@@ -355,19 +352,19 @@ export default function PredictionPanel({
             <StatRow label="Regime Type" value={0} display={regimeType} />
             <StatRow
               label="Democracy Level"
-              value={safeNum(prediction.Democracy_level)}
-              display={safeFmt(prediction.Democracy_level)}
+              value={safeNum(prediction.polyarchy)}
+              display={safeFmt(prediction.polyarchy)}
               bar
             />
             <StatRow
               label="Military Regime"
-              value={safeNum(prediction.Military_regime)}
-              display={safeNum(prediction.Military_regime) === 1 ? "Yes" : "No"}
+              value={safeNum(prediction.milreg)}
+              display={safeNum(prediction.milreg) === 1 ? "Yes" : "No"}
             />
             <StatRow
               label="Military Influence"
-              value={safeNum(prediction.Military_influence)}
-              display={safeNum(prediction.Military_influence) === 1 ? "Yes" : "No"}
+              value={safeNum(prediction.milit)}
+              display={safeNum(prediction.milit) === 1 ? "Yes" : "No"}
             />
             <StatRow
               label="Leader Age"
@@ -391,35 +388,24 @@ export default function PredictionPanel({
             <StatRow
               label="GDP per Capita (log)"
               value={0}
-              display={safeFmt(prediction.GDP_per_cap, 4)}
+              display={safeFmt(prediction.gdppc, 4)}
             />
             <StatRow
               label="Change in GDP per Capita"
-              value={(safeNum(prediction.Change_GDP_per_cap) + 0.2) / 0.4}
+              value={(safeNum(prediction.ch_gdppc) + 0.2) / 0.4}
               display={
-                prediction.Change_GDP_per_cap != null
-                  ? `${(safeNum(prediction.Change_GDP_per_cap) * 100).toFixed(2)}%`
+                prediction.ch_gdppc != null
+                  ? `${(safeNum(prediction.ch_gdppc) * 100).toFixed(2)}%`
                   : "N/A"
               }
               bar
-            />
-            <StatRow
-              label="Inflation"
-              value={Math.min(safeNum(prediction.Inflation) / 20, 1)}
-              display={
-                prediction.Inflation != null
-                  ? `${safeNum(prediction.Inflation).toFixed(2)}%`
-                  : "N/A"
-              }
-              bar
-              invert
             />
             <StatRow
               label="Trade (% of GDP)"
-              value={Math.min(safeNum(prediction.Trade) / 100, 1)}
+              value={Math.min(safeNum(prediction.ltrade) / 100, 1)}
               display={
-                prediction.Trade != null
-                  ? `${safeNum(prediction.Trade).toFixed(2)}%`
+                prediction.ltrade != null
+                  ? `${safeNum(prediction.ltrade).toFixed(2)}%`
                   : "N/A"
               }
               bar
@@ -429,8 +415,8 @@ export default function PredictionPanel({
           <Section title="Society">
             <StatRow
               label="Women's Political Participation"
-              value={safeNum(prediction.Women_political_participation)}
-              display={safeFmt(prediction.Women_political_participation)}
+              value={safeNum(prediction.wom_polpart)}
+              display={safeFmt(prediction.wom_polpart)}
               bar
             />
             <StatRow
@@ -447,32 +433,32 @@ export default function PredictionPanel({
             />
             <StatRow
               label="Protests"
-              value={Math.min(safeNum(prediction.Protests) / 5, 1)}
-              display={safeFmt(prediction.Protests)}
+              value={Math.min(safeNum(prediction.protests) / 5, 1)}
+              display={safeFmt(prediction.protests)}
               bar
               invert
             />
             <StatRow
               label="Civil Wars"
-              value={safeNum(prediction.Civil_wars)}
-              display={safeNum(prediction.Civil_wars) === 1 ? "Yes" : "No"}
+              value={safeNum(prediction.cw)}
+              display={safeNum(prediction.cw) === 1 ? "Yes" : "No"}
             />
           </Section>
 
           <Section title="Military">
             <StatRow
               label="Military Expenditure"
-              value={Math.min(safeNum(prediction.milex) / 30, 1)}
+              value={Math.min(safeNum(prediction.milex_spliced) / 30, 1)}
               display={
-                prediction.milex != null ? `${safeNum(prediction.milex).toFixed(2)}%` : "N/A"
+                prediction.milex_spliced != null ? `${safeNum(prediction.milex_spliced).toFixed(2)}%` : "N/A"
               }
               bar
               invert
             />
             <StatRow
               label="Military Personnel"
-              value={Math.min(safeNum(prediction.milper) / 10, 1)}
-              display={safeFmt(prediction.milper, 4)}
+              value={Math.min(safeNum(prediction.milper_spliced) / 10, 1)}
+              display={safeFmt(prediction.milper_spliced, 4)}
               bar
             />
             <StatRow
@@ -497,8 +483,8 @@ export default function PredictionPanel({
             />
             <StatRow
               label="Cold War Period"
-              value={safeNum(prediction.Cold_war)}
-              display={safeNum(prediction.Cold_war) === 1 ? "Yes" : "No"}
+              value={safeNum(prediction.cold)}
+              display={safeNum(prediction.cold) === 1 ? "Yes" : "No"}
             />
             <StatRow
               label="Foreign Visit"

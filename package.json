@@ -4,8 +4,8 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "panda:codegen": "NODE_OPTIONS=--experimental-require-module panda codegen --no-watch",
-    "panda:cssgen": "NODE_OPTIONS=--experimental-require-module panda cssgen --clean",
+    "panda:codegen": "cross-env NODE_OPTIONS=--experimental-require-module panda codegen --no-watch",
+    "panda:cssgen": "cross-env NODE_OPTIONS=--experimental-require-module panda cssgen --no-watch",
     "dev": "npm run panda:codegen && npm run panda:cssgen && vite",
     "build": "npm run panda:codegen && npm run panda:cssgen && tsc -b && vite build",
     "lint": "eslint .",
@@ -30,6 +30,7 @@
     "@types/react-dom": "^18.3.1",
     "@vitejs/plugin-react": "^4.3.3",
     "autoprefixer": "^10.4.20",
+    "cross-env": "^10.1.0",
     "eslint": "^9.13.0",
     "eslint-plugin-react-hooks": "^5.0.0",
     "eslint-plugin-react-refresh": "^0.4.14",

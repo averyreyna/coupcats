@@ -92,8 +92,8 @@ function getPredictionValue(
   row: Partial<CoupPrediction> & { yhat?: unknown },
 ): number | null {
   const prob =
-    typeof row.prediction_prob === "number" && Number.isFinite(row.prediction_prob)
-      ? row.prediction_prob
+    typeof row.yhat === "number" && Number.isFinite(row.yhat)
+      ? row.yhat
       : null;
   if (prob != null) return prob;
 
@@ -293,7 +293,7 @@ export default function App() {
     if (riskPredictions.length === 0) return [];
 
     return riskPredictions.map((row) => {
-      const baseMonthly = row.prediction_prob ?? 0;
+      const baseMonthly = row.yhat ?? 0;
       const rowKey = normalizeCountryKey(row.country);
       const isSelectedCountry =
         selectedRiskCountryKey.length > 0 && rowKey === selectedRiskCountryKey;
@@ -301,7 +301,7 @@ export default function App() {
       if (!predictiveEnabled) {
         return {
           ...row,
-          rendered_prediction_prob: row.prediction_prob ?? null,
+          rendered_prediction_prob: row.yhat ?? null,
           rendered_months_prob: computeAtLeastOneCoupWithinMonths(
             baseMonthly,
             futureMonths,
@@ -332,7 +332,7 @@ export default function App() {
 
       return {
         ...row,
-        rendered_prediction_prob: row.prediction_prob ?? null,
+        rendered_prediction_prob: row.yhat ?? null,
         rendered_months_prob: computeAtLeastOneCoupWithinMonths(
           baseMonthly,
           futureMonths,
