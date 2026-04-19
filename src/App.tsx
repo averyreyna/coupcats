@@ -55,11 +55,12 @@ function buildCountryHeatmapLayerStyle(
     paint: {
       "fill-color": [
         "case",
-        ["==", ["get", "prediction_prob"], null as unknown as string],
+        // CHANGED: was "prediction_prob" — renamed to "yhat" to match GeoJSON feature property key
+        ["==", ["get", "yhat"], null as unknown as string],
         PREDICTION_NULL_COLOR,
         [
           "step",
-          ["get", "prediction_prob"],
+          ["get", "yhat"],
           "#22c55e",
           safeModerate,
           "#eab308",
@@ -276,7 +277,7 @@ export default function App() {
           ...item,
           monthsAhead,
           yhat: cumulative,
-          prediction_prob: cumulative,
+          // REMOVED: prediction_prob: cumulative — CoupPrediction no longer has this field; yhat is the canonical value
         };
       },
     );
@@ -318,7 +319,7 @@ export default function App() {
 
           return {
             ...row,
-            prediction_prob: scenarioProbability,
+            // REMOVED: prediction_prob: scenarioProbability — not a field on CoupPrediction; rendered_prediction_prob carries the display value
             rendered_prediction_prob: scenarioProbability,
             rendered_months_prob: computeAtLeastOneCoupWithinMonths(
               scenarioProbability,
@@ -354,7 +355,7 @@ export default function App() {
 
       return {
         ...row,
-        prediction_prob: forecastProb,
+        // REMOVED: prediction_prob: forecastProb — not a field on CoupPrediction; yhat and rendered_prediction_prob carry this value
         rendered_prediction_prob: forecastProb,
         rendered_months_prob: forecastProb,
       };
@@ -384,12 +385,8 @@ export default function App() {
   const riskCountriesGeoJSON = useMemo(() => {
     if (!countriesGeoJSON || displayedRiskPredictionData.length === 0) return null;
 
-    const probMap = buildPredictionProbMap(
-      displayedRiskPredictionData.map((row) => ({
-        ...row,
-        prediction_prob: row.rendered_prediction_prob,
-      })),
-    );
+    // CHANGED: was mapping rows to add prediction_prob — buildPredictionProbMap now reads yhat directly, so no remapping needed
+    const probMap = buildPredictionProbMap(displayedRiskPredictionData);
 
     return {
       ...countriesGeoJSON,
@@ -402,7 +399,8 @@ export default function App() {
           ...f,
           properties: {
             ...f.properties,
-            prediction_prob: prob,
+            // CHANGED: was prediction_prob — renamed to yhat to match the map layer expression
+            yhat: prob,
           },
         };
       }),
@@ -438,7 +436,8 @@ export default function App() {
           ...f,
           properties: {
             ...f.properties,
-            prediction_prob: prob,
+            // CHANGED: was prediction_prob — renamed to yhat to match the map layer expression
+            yhat: prob,
           },
         };
       }),
@@ -451,10 +450,8 @@ export default function App() {
         ? displayedForecastPredictionData
         : displayedRiskPredictionData;
 
-    return source.map((row) => ({
-      ...row,
-      prediction_prob: row.rendered_prediction_prob,
-    }));
+    // REMOVED: was spreading prediction_prob: row.rendered_prediction_prob — riskBuckets now reads yhat, which is already on ...row
+    return source.map((row) => ({ ...row }));
   }, [viewMode, displayedForecastPredictionData, displayedRiskPredictionData]);
 
   const riskThresholds = useMemo(

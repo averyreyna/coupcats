@@ -9,7 +9,8 @@ export function buildYhatPredictionProbMap(
   for (const p of predictions) {
     const original = p.country.toLowerCase().trim();
     const key = COW_TO_ADMIN_ALIASES[original] ?? original;
-    const value = p.yhat ?? p.prediction_prob ?? null;
+    // CHANGED: was p.yhat ?? p.prediction_prob ?? null — prediction_prob removed from CoupPrediction
+    const value = p.yhat ?? null;
 
     map.set(key, value);
     map.set(original, value);

@@ -17,7 +17,8 @@ export function buildPredictionProbMap(
   const map = new Map<string, number | null>();
   for (const p of predictions) {
     const key = cowNameToGeoJsonAdmin(p.country).toLowerCase().trim();
-    map.set(key, p.prediction_prob ?? null);
+    // CHANGED: was p.prediction_prob ?? null — prediction_prob renamed to yhat in CoupPrediction
+    map.set(key, p.yhat ?? null);
   }
   // Greenland has no COW entry — color it the same as Denmark
   if (!map.has("greenland") && map.has("denmark")) {
@@ -77,11 +78,8 @@ function toPredictionFeatureCollection(
         },
         properties: {
           ...p,
-          // Sanitize NaN from the source JSON (Python serializes float NaN as literal NaN,
-          // which some parsers pass through; guard it here before it hits the map layer)
-          prediction_prob: typeof p.prediction_prob === "number" && isFinite(p.prediction_prob)
-            ? p.prediction_prob
-            : null,
+          // CHANGED: was sanitizing prediction_prob (which no longer exists); now sanitizes yhat and removes the redundant re-spread
+          yhat: isFinite(p.yhat) ? p.yhat : null,
           latitude: coords.latitude,
           longitude: coords.longitude,
         },

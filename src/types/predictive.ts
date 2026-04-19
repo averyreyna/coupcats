@@ -16,8 +16,7 @@ export type PredictiveCountryData = {
   ccode: number;
   year?: number;
   month?: number;
-  prediction_prob: number | null;
-
+  // REMOVED: prediction_prob — CoupPrediction renamed this to yhat; computeScenarioProbability never read this field anyway
   Trade?: number;
   Change_GDP_per_cap?: number;
   Democracy_level?: number;
