@@ -36,7 +36,7 @@ export interface CoupPrediction{
   month: number;
  
   // Model output (was prediction_prob)
-  yhat: number;
+  yhat: number | null;
  
   // Governance
   closed_autocracy: number;
@@ -80,6 +80,11 @@ export interface CoupPrediction{
   N_america: number;
   S_asia: number;
   Sub_africa: number;
+
+  //Additional variables for regression model prediction
+  pce: number;
+  pce2: number;
+  pce3: number;
 }
 
 //Creating the type in which the json is exported as
@@ -87,3 +92,26 @@ export type PredictionFeatureCollection = GeoJSON.FeatureCollection<
   GeoJSON.Point,
   CoupPrediction
 >;
+
+export type PredictiveSliderKey =
+  | "ltrade"
+  | "ch_gdppc"
+  | "polyarchy"
+  | "wom_polpart"
+  | "protests"
+  | "milreg"
+  | "milit";
+
+export type PredictiveMode = "baseline" | "scenario" | "futureMonths";
+
+export type PredictiveSliderPercents = Record<PredictiveSliderKey, number>;
+
+export const DEFAULT_PREDICTIVE_SLIDERS: PredictiveSliderPercents = {
+  ltrade: 100,
+  ch_gdppc: 100,
+  polyarchy: 100,
+  wom_polpart: 100,
+  protests: 100,
+  milreg: 0,
+  milit: 100,
+};

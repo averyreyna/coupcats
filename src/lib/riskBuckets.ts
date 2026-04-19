@@ -1,7 +1,7 @@
 import { predictionColors } from "../design-system/tokens";
 import type { CoupPrediction } from "../types/coup";
 
-const DEFAULT_THRESHOLDS: [number, number, number] = [0.05, 0.15, 0.3];
+const DEFAULT_THRESHOLDS: [number, number, number] = [0.005, 0.015, 0.040];
 const EPSILON = 1e-9;
 
 export type RiskBucket = "veryLow" | "moderate" | "elevated" | "high";
@@ -27,10 +27,10 @@ export interface RiskBucketBound {
 }
 
 const RISK_BUCKET_META: Record<RiskBucket, RiskBucketMetadata> = {
-  veryLow: { key: "veryLow", label: "Very Low", color: predictionColors.veryLow },
-  moderate: { key: "moderate", label: "Moderate", color: predictionColors.moderate },
-  elevated: { key: "elevated", label: "Elevated", color: predictionColors.elevated },
-  high: { key: "high", label: "High", color: predictionColors.high },
+  veryLow:  { key: "veryLow",  label: "Very Low",  color: predictionColors.veryLow  },
+  moderate: { key: "moderate", label: "Moderate",  color: predictionColors.moderate },
+  elevated: { key: "elevated", label: "Elevated",  color: predictionColors.elevated },
+  high:     { key: "high",     label: "High",      color: predictionColors.high     },
 };
 
 const BUCKET_ORDER: RiskBucket[] = ["veryLow", "moderate", "elevated", "high"];
@@ -67,32 +67,54 @@ export function getValidPredictionProbabilities(predictions: CoupPrediction[]): 
 
 export function computeRiskThresholds(predictions: CoupPrediction[]): RiskThresholds {
   const values = getValidPredictionProbabilities(predictions);
+
   if (values.length < 4) {
     return {
       moderateMin: DEFAULT_THRESHOLDS[0],
       elevatedMin: DEFAULT_THRESHOLDS[1],
-      highMin: DEFAULT_THRESHOLDS[2],
+      highMin:     DEFAULT_THRESHOLDS[2],
     };
   }
 
-  const candidate: [number, number, number] = [
-    quantile(values, 0.5),
-    quantile(values, 0.8),
-    quantile(values, 0.95),
-  ];
-  const [moderateMin, elevatedMin, highMin] = makeStrictlyIncreasing(candidate);
+  // Use log-scale percentiles so the gradient spreads across the full visual
+  // range even when all yhat values are clustered near zero. Taking log()
+  // stretches the low end of the distribution so percentile splits produce
+  // meaningful visual separation between countries.
+  const logValues = values
+    .filter((v) => v > 0)
+    .map((v) => Math.log(v))
+    .sort((a, b) => a - b);
 
-  return { moderateMin, elevatedMin, highMin };
+  if (logValues.length < 4) {
+    return {
+      moderateMin: DEFAULT_THRESHOLDS[0],
+      elevatedMin: DEFAULT_THRESHOLDS[1],
+      highMin:     DEFAULT_THRESHOLDS[2],
+    };
+  }
+
+  const [logMod, logElev, logHigh] = makeStrictlyIncreasing([
+    quantile(logValues, 0.5),
+    quantile(logValues, 0.8),
+    quantile(logValues, 0.95),
+  ]);
+
+  return {
+    moderateMin: Math.exp(logMod),
+    elevatedMin: Math.exp(logElev),
+    highMin:     Math.exp(logHigh),
+  };
 }
 
 export function classifyRisk(
   probability: number | null | undefined,
   thresholds: RiskThresholds,
 ): RiskBucketMetadata | null {
+  // Explicitly handle 0 — it is valid (very low risk) not missing data
   if (probability == null || !isFinite(probability)) return null;
   if (probability < thresholds.moderateMin) return RISK_BUCKET_META.veryLow;
   if (probability < thresholds.elevatedMin) return RISK_BUCKET_META.moderate;
-  if (probability < thresholds.highMin) return RISK_BUCKET_META.elevated;
+  if (probability < thresholds.highMin)     return RISK_BUCKET_META.elevated;
   return RISK_BUCKET_META.high;
 }
 

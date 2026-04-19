@@ -5,7 +5,6 @@ import type {
   FillLayerSpecification,
   MapLayerMouseEvent,
 } from "maplibre-gl";
-import { type CoupEvent, type CoupPrediction } from "./types/coup";
 import PredictionPanel from "./components/PredictionPanel";
 import EventPopup from "./components/EventPopup";
 import MapLegend from "./components/MapLegend";
@@ -15,7 +14,6 @@ import { useFilterStore } from "./store/useFilterStore";
 import { PREDICTION_NULL_COLOR } from "./lib/colors";
 import {
   getAllCoupEvents,
-  getPredictionFeatureCollection,
   buildPredictionProbMap,
   COW_TO_ADMIN_ALIASES,
 } from "./lib/coupData";
@@ -30,11 +28,12 @@ import { useClearSelectionOnMapClick } from "./hooks/useClearSelectionOnMapClick
 import currentYhatData from "./data/current_yhat.json";
 import {
   DEFAULT_PREDICTIVE_SLIDERS,
-  type PredictiveCountryData,
+  type CoupEvent,
+  type CoupPrediction,
   type PredictiveMode,
   type PredictiveSliderKey,
   type PredictiveSliderPercents,
-} from "./types/predictive";
+} from "./types/coup";
 
 const MAP_STYLE =
   "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json";
@@ -55,22 +54,21 @@ function buildCountryHeatmapLayerStyle(
     paint: {
       "fill-color": [
         "case",
-        // CHANGED: was "prediction_prob" — renamed to "yhat" to match GeoJSON feature property key
         ["==", ["get", "yhat"], null as unknown as string],
         PREDICTION_NULL_COLOR,
         [
-          "step",
+          // interpolate produces a smooth continuous gradient between stops
+          // rather than hard bucket jumps, giving a true heatmap appearance
+          "interpolate",
+          ["linear"],
           ["get", "yhat"],
-          "#22c55e",
-          safeModerate,
-          "#eab308",
-          safeElevated,
-          "#f97316",
-          safeHigh,
-          "#ef4444",
+          0,             "#22c55e",   // green  — zero / very low risk
+          safeModerate,  "#86efac",   // light green — low/moderate boundary
+          safeElevated,  "#eab308",   // yellow — moderate/elevated boundary
+          safeHigh,      "#ef4444",   // red    — high risk
         ],
       ],
-      "fill-opacity": 0.65,
+      "fill-opacity": 0.75,
     },
   };
 }
@@ -108,27 +106,27 @@ function getPredictionValue(
 }
 
 function computeScenarioProbability(
-  original: PredictiveCountryData,
+  original: CoupPrediction,
   sliderPercents: PredictiveSliderPercents,
 ): number {
-  const Trade = num(original.Trade) * (num(sliderPercents.Trade, 100) / 100);
+  const Trade = num(original.ltrade) * (num(sliderPercents.ltrade, 100) / 100);
   const Change_GDP_per_cap =
-    num(original.Change_GDP_per_cap) *
-    (num(sliderPercents.Change_GDP_per_cap, 100) / 100);
+    num(original.ch_gdppc) *
+    (num(sliderPercents.ch_gdppc, 100) / 100);
   const Democracy_level =
-    num(original.Democracy_level) *
-    (num(sliderPercents.Democracy_level, 100) / 100);
+    num(original.polyarchy) *
+    (num(sliderPercents.polyarchy, 100) / 100);
   const Women_political_participation =
-    num(original.Women_political_participation) *
-    (num(sliderPercents.Women_political_participation, 100) / 100);
+    num(original.wom_polpart) *
+    (num(sliderPercents.wom_polpart, 100) / 100);
   const Protests =
-    num(original.Protests) * (num(sliderPercents.Protests, 100) / 100);
-  const Military_regime = sliderPercents.Military_regime === 0 ? 0 : 1;
+    num(original.protests) * (num(sliderPercents.protests, 100) / 100);
+  const Military_regime = sliderPercents.milreg === 0 ? 0 : 1;
   const Military_influence =
-    num(original.Military_influence) *
-    (num(sliderPercents.Military_influence, 100) / 100);
+    num(original.milit) *
+    (num(sliderPercents.milit, 100) / 100);
 
-  const Cold_war = num(original.Cold_war);
+  const Cold_war = num(original.cold);
   const e_asia_pacific = num(original.e_asia_pacific);
   const LA_carrib = num(original.LA_carrib);
   const MENA = num(original.MENA);
@@ -139,8 +137,8 @@ function computeScenarioProbability(
   const pce2 = num(original.pce2);
   const pce3 = num(original.pce3);
   const Democracy_squared = Democracy_level * Democracy_level;
-  const GDP_per_cap = num(original.GDP_per_cap);
-  const Civil_wars = num(original.Civil_wars);
+  const GDP_per_cap = num(original.gdppc);
+  const Civil_wars = num(original.cw);
 
   const intercept = -6.607;
 
@@ -312,7 +310,7 @@ export default function App() {
       if (predictiveMode === "scenario" && isSelectedCountry) {
         try {
           const scenarioProbability = computeScenarioProbability(
-            row as unknown as PredictiveCountryData,
+            row as unknown as CoupPrediction,
             predictiveSliderPercents,
           );
 
@@ -812,7 +810,7 @@ export default function App() {
 
         <PredictionPanel
           prediction={selectedPrediction}
-
+          allPredictions={riskPredictions}
           riskThresholds={riskThresholds}
           onClose={() => { setSelectedRiskCountry(null); setSelectedGeoNames([]); }}
           predictiveEnabled={predictiveEnabled}

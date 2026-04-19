@@ -185,13 +185,7 @@ export default function Toolbar({ regions, tags }: ToolbarProps) {
             onClick={() => setViewMode("risk")}
             className={viewModeButtonStyle(viewMode === "risk")}
           >
-            Current Risk
-          </button>
-          <button
-            onClick={() => setViewMode("forecast")}
-            className={viewModeButtonStyle(viewMode === "forecast")}
-          >
-            Forecast Risk
+            Forecast
           </button>
         </div>
 
