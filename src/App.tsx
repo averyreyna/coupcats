@@ -256,14 +256,13 @@ export default function App() {
   const [riskPredictions, setRiskPredictions] = useState<CoupPrediction[]>([]);
   const [forecastPredictions, setForecastPredictions] = useState<CoupPrediction[]>([]);
 
+  // CHANGED: was fetching from GitHub (recent_data.json) which uses old field names and has no yhat.
+  // Now reads current_yhat.json directly, which is the new-format data with yhat.
   useEffect(() => {
-    getPredictionFeatureCollection()
-      .then((fc) => {
-        setRiskPredictions((fc.features ?? []).map((f) => f.properties));
-      })
-      .catch((err) =>
-        console.error("Failed to load current-risk predictions:", err),
-      );
+    const rows = (currentYhatData as CoupPrediction[]).filter(
+      (item) => typeof item.yhat === "number" && isFinite(item.yhat),
+    );
+    setRiskPredictions(rows);
   }, []);
 
   useEffect(() => {
