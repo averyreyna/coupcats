@@ -10,6 +10,7 @@ import CountryPanel from "./CountryPanel";
 import { useFilterStore } from "../store/useFilterStore";
 import { getDataLookupName } from "../lib/countryNameMapping";
 import FiltersPanel from "./FiltersPanel";
+import EventDetailsPanel from "./EventDetailsPanel";
 
 export interface LayoutProps {
   children: React.ReactNode;
@@ -98,6 +99,8 @@ export default function Layout({ children, mapRef, allEvents }: LayoutProps) {
   const selectedCountry = useFilterStore((s) => s.selectedCountry);
   const setSelectedCountry = useFilterStore((s) => s.setSelectedCountry);
   const setSelectedGeoNames = useFilterStore((s) => s.setSelectedGeoNames);
+  const selectedEvent = useFilterStore((s) => s.selectedEvent);
+  const setSelectedEvent = useFilterStore((s) => s.setSelectedEvent);
 
   const regions = useMemo(
     () => [...new Set(allEvents.map((event) => event.region))].sort(),
@@ -130,6 +133,15 @@ export default function Layout({ children, mapRef, allEvents }: LayoutProps) {
                 country={selectedCountry}
                 events={countryEvents}
                 onClose={() => { setSelectedCountry(null); setSelectedGeoNames([]); }}
+                mapRef={mapRef}
+              />
+            </div>
+          )}
+          {selectedEvent && (
+            <div className={panelSheetRightStyle}>
+              <EventDetailsPanel
+                event={selectedEvent}
+                onClose={() => setSelectedEvent(null)}
               />
             </div>
           )}
