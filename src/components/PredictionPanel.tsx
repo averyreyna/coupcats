@@ -1,3 +1,4 @@
+import { X } from "lucide-react";
 import { css } from "styled-system/css";
 import { predictionColors } from "../design-system/tokens";
 import { classifyRisk, type RiskThresholds } from "../lib/riskBuckets";
@@ -254,12 +255,8 @@ function StatRow({
             className={css({
               fontSize: "sm",
               color: "var(--colors-text-muted)",
-              textDecoration: "underline",
-              textDecorationStyle: "dotted",
-              textUnderlineOffset: "2px",
               cursor: "help",
             })}
-            style={{ textDecorationColor: "#3b82f6" }}
           >
             {label}
           </span>
@@ -378,14 +375,23 @@ export default function PredictionPanel({
         <button
           onClick={onClose}
           className={css({
-            fontSize: "lg",
-            marginTop: "0.5",
-            cursor: "pointer",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            width: "8",
+            height: "8",
+            borderRadius: "sm",
+            borderWidth: "1px",
+            borderStyle: "solid",
+            borderColor: "var(--colors-border-strong)",
+            backgroundColor: "var(--colors-bg-muted)",
             color: "var(--colors-text-muted)",
-            _hover: { color: "var(--colors-text-primary)" },
+            cursor: "pointer",
+            flexShrink: "0",
+            _hover: { backgroundColor: "var(--colors-bg-hover)" },
           })}
         >
-          ✕
+          <X className={css({ width: "4", height: "4" })} />
         </button>
       </div>
 
@@ -404,8 +410,8 @@ export default function PredictionPanel({
           <span className={css({ fontSize: "sm", color: "var(--colors-text-muted)" })}>
             Coup Probability
           </span>
-          <span className={css({ fontWeight: "bold", fontSize: "lg" })} style={{ color: riskHex }}>
-            {hasValidProb ? `${(prob! * 100).toFixed(4)}%` : "N/A"}
+          <span className={css({ fontWeight: "bold", fontSize: "md" })} style={{ color: riskHex }}>
+            {hasValidProb ? `${(prob! * 100).toFixed(2)}%` : "N/A"}
           </span>
         </div>
 
@@ -426,9 +432,9 @@ export default function PredictionPanel({
         </p>
 
         <div className={css({ display: "grid", gap: "1", marginTop: "3", fontSize: "sm" })}>
-          <div className={css({ display: "flex", justifyContent: "space-between", color: "var(--colors-text-muted)" })}>
-            <span>Risk within {displayMonths} months</span>
-            <span>
+          <div className={css({ display: "flex", justifyContent: "space-between", alignItems: "center" })}>
+            <span className={css({ color: "var(--colors-text-muted)" })}>Risk within {displayMonths} months</span>
+            <span className={css({ fontWeight: "medium", color: "var(--colors-text-primary)" })}>
               {monthsProb != null && isFinite(monthsProb)
                 ? `${(monthsProb * 100).toFixed(2)}%`
                 : "N/A"}
