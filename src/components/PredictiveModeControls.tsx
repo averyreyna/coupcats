@@ -18,22 +18,22 @@ type Props = {
 };
 
 const sliderLabels: Record<PredictiveSliderKey, string> = {
-  ltrade: "Trade",
+  trade_glob: "Trade",
   ch_gdppc: "GDP Change",
   polyarchy: "Democracy",
   wom_polpart: "Women Participation",
   protests: "Protests",
-  milreg: "Military Regime",
+  milreg_prop: "Military Regime",
   milit: "Military Influence",
 };
 
 const sliderOrder: PredictiveSliderKey[] = [
-  "ltrade",
+  "trade_glob",
   "ch_gdppc",
   "polyarchy",
   "wom_polpart",
   "protests",
-  "milreg",
+  "milreg_prop",
   "milit",
 ];
 
@@ -140,7 +140,7 @@ export default function PredictiveModeControls({
           {mode === "scenario" && (
             <div className={css({ display: "grid", gap: "3" })}>
               {sliderOrder.map((key) => {
-                const isMilitaryRegime = key === "milreg";
+                const isMilitaryRegime = key === "milreg_prop";
                 const value = sliderPercents[key];
 
                 return (

@@ -83,7 +83,7 @@ function toPredictionFeatureCollection(
 
 // Built once at module load — no async needed with a local file
 const predictionFeatureCollection: PredictionFeatureCollection =
-  toPredictionFeatureCollection(predictionsRaw as CoupPrediction[]);
+  toPredictionFeatureCollection(predictionsRaw as unknown as CoupPrediction[]);
 
 export function getPredictionFeatureCollection(): PredictionFeatureCollection {
   return predictionFeatureCollection;

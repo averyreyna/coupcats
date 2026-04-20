@@ -54,21 +54,22 @@ function buildCountryHeatmapLayerStyle(
     paint: {
       "fill-color": [
         "case",
+        // CHANGED: was "prediction_prob" — renamed to "yhat" to match GeoJSON feature property key
         ["==", ["get", "yhat"], null as unknown as string],
         PREDICTION_NULL_COLOR,
         [
-          // interpolate produces a smooth continuous gradient between stops
-          // rather than hard bucket jumps, giving a true heatmap appearance
-          "interpolate",
-          ["linear"],
+          "step",
           ["get", "yhat"],
-          0,             "#22c55e",   // green  — zero / very low risk
-          safeModerate,  "#86efac",   // light green — low/moderate boundary
-          safeElevated,  "#eab308",   // yellow — moderate/elevated boundary
-          safeHigh,      "#ef4444",   // red    — high risk
+          "#22c55e",
+          safeModerate,
+          "#eab308",
+          safeElevated,
+          "#f97316",
+          safeHigh,
+          "#ef4444",
         ],
       ],
-      "fill-opacity": 0.75,
+      "fill-opacity": 0.65,
     },
   };
 }
@@ -109,63 +110,26 @@ function computeScenarioProbability(
   original: CoupPrediction,
   sliderPercents: PredictiveSliderPercents,
 ): number {
-  const Trade = num(original.ltrade) * (num(sliderPercents.ltrade, 100) / 100);
-  const Change_GDP_per_cap =
-    num(original.ch_gdppc) *
-    (num(sliderPercents.ch_gdppc, 100) / 100);
-  const Democracy_level =
-    num(original.polyarchy) *
-    (num(sliderPercents.polyarchy, 100) / 100);
-  const Women_political_participation =
-    num(original.wom_polpart) *
-    (num(sliderPercents.wom_polpart, 100) / 100);
-  const Protests =
-    num(original.protests) * (num(sliderPercents.protests, 100) / 100);
-  const Military_regime = sliderPercents.milreg === 0 ? 0 : 1;
-  const Military_influence =
-    num(original.milit) *
-    (num(sliderPercents.milit, 100) / 100);
+  const baseYhat = num(original.yhat);
 
-  const Cold_war = num(original.cold);
-  const e_asia_pacific = num(original.e_asia_pacific);
-  const LA_carrib = num(original.LA_carrib);
-  const MENA = num(original.MENA);
-  const N_america = num(original.N_america);
-  const S_asia = num(original.S_asia);
-  const Sub_africa = num(original.Sub_africa);
-  const pce = num(original.pce);
-  const pce2 = num(original.pce2);
-  const pce3 = num(original.pce3);
-  const Democracy_squared = Democracy_level * Democracy_level;
-  const GDP_per_cap = num(original.gdppc);
-  const Civil_wars = num(original.cw);
+  // Convert baseline yhat into log-odds space so we can apply deltas from it.
+  // Clamping prevents Math.log(0) = -Infinity and Math.log(1/(1-1)) = +Infinity.
+  const baseLogOdds = Math.log(
+    Math.max(baseYhat, 1e-9) / Math.max(1 - baseYhat, 1e-9),
+  );
 
-  const intercept = -6.607;
+  // Each term: coefficient * originalValue * (percentChange / 100)
+  // When all sliders are at 100%, every term is 0, so delta = 0 and
+  // logistic(baseLogOdds + 0) == yhat exactly — the baseline is always preserved.
+  const delta =
+    -2.022e-3 * (num(original.trade_glob) * ((num(sliderPercents.trade_glob,     100) - 100) / 100)) +
+    -3.455e-1 * (num(original.ch_gdppc)   * ((num(sliderPercents.ch_gdppc,   100) - 100) / 100)) +
+    -1.771e-3 * (num(original.polyarchy)  * ((num(sliderPercents.polyarchy,  100) - 100) / 100)) +
+    -2.210e-3 * (num(original.wom_polpart)* ((num(sliderPercents.wom_polpart,100) - 100) / 100)) +
+     1.921e-3 * (num(original.milit)      * ((num(sliderPercents.milit,      100) - 100) / 100)) +
+     1.921e-3 * (num(original.protests)   * ((num(sliderPercents.protests,   100) - 100) / 100));
 
-  const x =
-    intercept +
-    -7.367e-2 * Trade +
-    -3.559e0 * Change_GDP_per_cap +
-    7.9264e0 * Democracy_level +
-    -9.8963e-1 * Women_political_participation +
-    2.5498e-1 * Protests +
-    1.2107e0 * Military_regime +
-    8.7481e-1 * Military_influence +
-    4.5741e-1 * Cold_war +
-    2.3207e-1 * e_asia_pacific +
-    8.2664e-1 * LA_carrib +
-    7.1901e-1 * MENA +
-    -1.1423e1 * N_america +
-    4.1404e-1 * S_asia +
-    7.9359e-1 * Sub_africa +
-    -5.7242e-3 * pce +
-    1.0202e-5 * pce2 +
-    -9.68e-9 * pce3 +
-    -8.5157e0 * Democracy_squared +
-    -1.104e-1 * GDP_per_cap +
-    2.4043e-1 * Civil_wars;
-
-  return logistic(x);
+  return logistic(baseLogOdds + delta);
 }
 
 function computeAtLeastOneCoupWithinMonths(
@@ -257,14 +221,14 @@ export default function App() {
   // CHANGED: was fetching from GitHub (recent_data.json) which uses old field names and has no yhat.
   // Now reads current_yhat.json directly, which is the new-format data with yhat.
   useEffect(() => {
-    const rows = (currentYhatData as CoupPrediction[]).filter(
+    const rows = (currentYhatData as unknown as CoupPrediction[]).filter(
       (item) => typeof item.yhat === "number" && isFinite(item.yhat),
     );
     setRiskPredictions(rows);
   }, []);
 
   useEffect(() => {
-    const rows = (currentYhatData as Array<CoupPrediction & { yhat?: number }>).map(
+    const rows = (currentYhatData as unknown as Array<CoupPrediction & { yhat?: number }>).map(
       (item) => {
         const p = Number(item.yhat);
         const baseYhat = Number.isFinite(p) ? p : 0;

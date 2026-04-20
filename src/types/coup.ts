@@ -85,6 +85,12 @@ export interface CoupPrediction{
   pce: number;
   pce2: number;
   pce3: number;
+  signal: number;
+  trade_glob: number;
+  mobilization: number;
+  numleaders_10yr: number;
+  milreg_prop: number;
+  mutiny6: number;
 }
 
 //Creating the type in which the json is exported as
@@ -94,12 +100,12 @@ export type PredictionFeatureCollection = GeoJSON.FeatureCollection<
 >;
 
 export type PredictiveSliderKey =
-  | "ltrade"
+  | "trade_glob"
   | "ch_gdppc"
   | "polyarchy"
   | "wom_polpart"
   | "protests"
-  | "milreg"
+  | "milreg_prop"
   | "milit";
 
 export type PredictiveMode = "baseline" | "scenario" | "futureMonths";
@@ -107,11 +113,11 @@ export type PredictiveMode = "baseline" | "scenario" | "futureMonths";
 export type PredictiveSliderPercents = Record<PredictiveSliderKey, number>;
 
 export const DEFAULT_PREDICTIVE_SLIDERS: PredictiveSliderPercents = {
-  ltrade: 100,
+  trade_glob: 100,
   ch_gdppc: 100,
   polyarchy: 100,
   wom_polpart: 100,
   protests: 100,
-  milreg: 0,
+  milreg_prop: 100,
   milit: 100,
 };

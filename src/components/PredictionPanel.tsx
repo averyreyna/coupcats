@@ -192,7 +192,7 @@ function Section({
   children: React.ReactNode;
 }) {
   return (
-    <details className={css({ marginBottom: "5" })}>
+    <details className={css({ marginBottom: "5" })} open>
       <summary
         className={css({
           fontSize: "xs",
@@ -306,7 +306,8 @@ export default function PredictionPanel({
 }: Props) {
   if (!prediction) return null;
 
-  const prob = prediction.rendered_prediction_prob ?? prediction.yhat;
+  const rawProb = prediction.rendered_prediction_prob ?? prediction.yhat;
+  const prob = rawProb != null && rawProb < 0 ? 0 : rawProb;
   const monthsProb = prediction.rendered_months_prob;
   const hasValidProb = prob != null && isFinite(prob);
 
@@ -454,7 +455,7 @@ export default function PredictionPanel({
 
         <div className={css({ marginTop: showPredictiveControls ? "5" : "0" })}>
 
-          <Section title="Governance: " score={govScore}>
+          <Section title="Governance" score={govScore}>
             <StatRow label="Regime Type" value={0} display={regimeType}
               tooltip="Classification of how the country is governed — from liberal democracy to closed autocracy" />
             <StatRow label="Democracy Level" value={safeNum(prediction.polyarchy)} display={safeFmt(prediction.polyarchy)} bar
@@ -471,7 +472,7 @@ export default function PredictionPanel({
               tooltip="How long the current leader has been in power. Longer tenures can correlate with instability" />
           </Section>
 
-          <Section title="Economy: " score={ecoScore}>
+          <Section title="Economy" score={ecoScore}>
             <StatRow label="GDP per Capita (log)" value={0} display={safeFmt(prediction.gdppc, 4)}
               tooltip="Log of GDP per capita, standardized. Proxy for overall economic development and living standards" />
             <StatRow label="Change in GDP per Capita"
@@ -484,7 +485,7 @@ export default function PredictionPanel({
               tooltip="Log of total trade volume (imports + exports). Higher trade integration tends to reduce instability" />
           </Section>
 
-          <Section title="Society: " score={socScore}>
+          <Section title="Society" score={socScore}>
             <StatRow label="Women's Political Participation"
               value={Math.min(Math.max((safeNum(prediction.wom_polpart) + 2) / 4, 0), 1)}
               display={safeFmt(prediction.wom_polpart)} bar
@@ -499,7 +500,7 @@ export default function PredictionPanel({
               tooltip="Whether the country is currently experiencing an active civil war" />
           </Section>
 
-          <Section title="Military: " score={milScore}>
+          <Section title="Military" score={milScore}>
             <StatRow label="Military Expenditure"
               value={Math.min(safeNum(prediction.milex_spliced) / 30, 1)}
               display={prediction.milex_spliced != null ? `${safeNum(prediction.milex_spliced).toFixed(2)}%` : "N/A"} bar invert
@@ -517,7 +518,7 @@ export default function PredictionPanel({
               tooltip="Degree to which political mobilization is concentrated in a single movement or faction" />
           </Section>
 
-          <Section title="Context: " score={ctxScore}>
+          <Section title="Context" score={ctxScore}>
             <StatRow label="Neighboring Coup"
               value={safeNum(prediction.neighboring_coup)}
               display={prediction.neighboring_coup != null ? (safeNum(prediction.neighboring_coup) === 1 ? "Yes" : "No") : "N/A"}
