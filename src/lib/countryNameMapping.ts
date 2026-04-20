@@ -21,7 +21,6 @@ const COW_TO_GEOJSON: Record<string, string> = {
   "Tanzania": "United Republic of Tanzania",
   "United States": "United States of America",
   "Yugoslavia": "Republic of Serbia",
-  "Ivory Coast": "Côte d'Ivoire",
 };
 
 /**
@@ -48,6 +47,7 @@ const GEOJSON_TO_COW_DATA: Record<string, string> = {
   "Saint Kitts and Nevis":              "St. Kitts and Nevis",
   "Saint Lucia":                        "St. Lucia",
   "Saint Vincent and the Grenadines":   "St. Vincent and the Grenadines",
+  "eSwatini":                           "Swaziland"
 };
 
 export function getDataLookupName(geoName: string): string {

@@ -3,7 +3,6 @@ import {
   OUTCOME_COLORS,
   OUTCOME_LABELS,
   PREDICTION_NULL_COLOR,
-  PREDICTION_ZERO_RISK_COLOR,
 } from "../lib/colors";
 import type { RiskBucketBound } from "../lib/riskBuckets";
 import type { CoupOutcome } from "../types/coup";
@@ -103,13 +102,6 @@ export default function MapLegend({ riskBucketBounds }: MapLegendProps) {
               {riskRangeLabel(bound)}
             </div>
           ))}
-          <div className={rowStyle}>
-            <span
-              className={swatchStyle}
-              style={{ backgroundColor: PREDICTION_ZERO_RISK_COLOR }}
-            />
-            No Risk (0.00%)
-          </div>
           <div className={rowStyle}>
             <span
               className={swatchStyle}
