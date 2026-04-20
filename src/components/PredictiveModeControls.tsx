@@ -68,11 +68,11 @@ export default function PredictiveModeControls({
         })}
       >
         <div>
-          <div className={css({ fontWeight: "semibold", fontSize: "md" })}>
+          <div className={css({ fontWeight: "semibold", fontSize: "sm" })}>
             Predictive Mode
           </div>
-          <div className={css({ fontSize: "sm", color: "text.secondary" })}>
-            Apply scenario changes to the selected country
+          <div className={css({ fontSize: "xs", color: "text.muted", marginTop: "0.5" })}>
+            Apply scenario changes to this country
           </div>
         </div>
 
@@ -149,11 +149,12 @@ export default function PredictiveModeControls({
                       className={css({
                         display: "flex",
                         justifyContent: "space-between",
+                        alignItems: "center",
                         fontSize: "sm",
                       })}
                     >
-                      <span>{sliderLabels[key]}</span>
-                      <span>
+                      <span className={css({ color: "text.secondary" })}>{sliderLabels[key]}</span>
+                      <span className={css({ fontWeight: "medium", color: "text.primary" })}>
                         {isMilitaryRegime ? (value === 0 ? "Off" : "On") : `${value}%`}
                       </span>
                     </div>
@@ -166,6 +167,12 @@ export default function PredictiveModeControls({
                       step={1}
                       value={value}
                       onChange={(e) => onSliderChange(key, Number(e.target.value))}
+                      style={{
+                        background: (() => {
+                          const pct = isMilitaryRegime ? value * 100 : value / 2;
+                          return `linear-gradient(to right, #FF6A00 0%, #FF6A00 ${pct}%, #e5e7eb ${pct}%, #e5e7eb 100%)`;
+                        })(),
+                      }}
                     />
                   </div>
                 );
@@ -186,6 +193,12 @@ export default function PredictiveModeControls({
                 step={1}
                 value={futureMonths}
                 onChange={(e) => setFutureMonths(Number(e.target.value))}
+                style={{
+                  background: (() => {
+                    const pct = ((futureMonths - 1) / 11) * 100;
+                    return `linear-gradient(to right, #FF6A00 0%, #FF6A00 ${pct}%, #e5e7eb ${pct}%, #e5e7eb 100%)`;
+                  })(),
+                }}
               />
               <div className={css({ fontSize: "sm", color: "text.secondary" })}>
                 Uses the selected month horizon for cumulative coup risk.
@@ -198,19 +211,26 @@ export default function PredictiveModeControls({
               display: "flex",
               justifyContent: "flex-end",
               mt: "2",
+              pt: "2",
+              borderTop: "1px solid",
+              borderColor: "border.default",
             })}
           >
             <button
               type="button"
               onClick={onReset}
               className={css({
-                py: "2",
+                py: "1.5",
                 px: "3",
                 borderRadius: "md",
                 border: "1px solid",
-                borderColor: "border.default",
-                bg: "bg.subtle",
+                borderColor: "border.strong",
+                bg: "bg.muted",
+                color: "text.secondary",
+                fontSize: "sm",
+                fontWeight: "medium",
                 cursor: "pointer",
+                _hover: { bg: "bg.hover" },
               })}
             >
               Reset

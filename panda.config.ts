@@ -207,8 +207,8 @@ export default defineConfig({
       boxShadow: "0 0 0 4px color-mix(in srgb, #FF6A00 15%, transparent)",
       cursor: "pointer",
     },
-    ".timeline-slider::-webkit-slider-runnable-track": { background: "transparent" },
-    ".timeline-slider::-moz-range-track": { background: "transparent" },
+    ".timeline-slider::-webkit-slider-runnable-track": { background: "transparent", height: "4px", borderRadius: "9999px" },
+    ".timeline-slider::-moz-range-track": { background: "transparent", height: "4px", borderRadius: "9999px" },
     // MapLibre popup — light mode
     ".maplibregl-popup-content": {
       padding: "0 !important",

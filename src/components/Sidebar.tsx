@@ -1,14 +1,13 @@
 import { useState } from "react";
-import { Globe, List, Filter, Info, PanelLeftClose, PanelLeft } from "lucide-react";
+import { Globe, List, Filter, PanelLeftClose, PanelLeft } from "lucide-react";
 import { css } from "styled-system/css";
 
-export type NavId = "home" | "events" | "filters" | "about";
+export type NavId = "home" | "events" | "filters";
 
 const NAV_ITEMS: { id: NavId; icon: typeof Globe; label: string }[] = [
   { id: "home",    icon: Globe,   label: "Home" },
   { id: "events",  icon: List,    label: "Events" },
   { id: "filters", icon: Filter,  label: "Filters" },
-  { id: "about",   icon: Info,    label: "About" },
 ];
 
 export interface SidebarProps {

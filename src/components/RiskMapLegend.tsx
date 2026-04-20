@@ -1,4 +1,4 @@
-import { riskScoreToColor, NO_DATA_COLOR } from "../lib/riskColors";
+import { riskScoreToColor, NO_DATA_COLOR, ZERO_RISK_COLOR } from "../lib/riskColors";
 
 export default function RiskMapLegend() {
   const gradientCSS = `linear-gradient(to right, ${riskScoreToColor(0)}, ${riskScoreToColor(0.25)}, ${riskScoreToColor(0.5)}, ${riskScoreToColor(0.75)}, ${riskScoreToColor(1.0)})`;
@@ -15,6 +15,15 @@ export default function RiskMapLegend() {
       <div className="flex justify-between text-xs text-gray-400 mb-3">
         <span>Low Risk</span>
         <span>High Risk</span>
+      </div>
+
+      {/* Zero risk swatch */}
+      <div className="flex items-center gap-2 text-xs text-gray-400 mb-1.5">
+        <div
+          className="w-4 h-4 rounded border border-gray-600 shrink-0"
+          style={{ background: ZERO_RISK_COLOR }}
+        />
+        <span>No Risk (0.00%)</span>
       </div>
 
       {/* No data swatch */}

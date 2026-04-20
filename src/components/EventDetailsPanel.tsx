@@ -177,11 +177,11 @@ export default function EventDetailsPanel({
         {hasNarrative ? (
           <div>
             <div className={narrativeContentStyle}>
-              {narrative.content.map((paragraph, index) => (
-                <p key={index} className={css({ marginBottom: "2" })}>
-                  {paragraph}
-                </p>
-              ))}
+              <p>
+                {narrative.content[0].length > 180
+                  ? `${narrative.content[0].slice(0, 180).trimEnd()}…`
+                  : narrative.content[0]}
+              </p>
             </div>
             <Link
               to={`/narrative/${event.id}`}
