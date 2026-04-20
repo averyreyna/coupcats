@@ -464,7 +464,7 @@ export default function PredictionPanel({
           <Section title="Governance" score={govScore}>
             <StatRow label="Regime Type" value={0} display={regimeType}
               tooltip="Classification of how the country is governed — from liberal democracy to closed autocracy" />
-            <StatRow label="Democracy Level" value={safeNum(prediction.polyarchy)} display={safeFmt(prediction.polyarchy)} bar
+            <StatRow label="Democracy Level" value={safeNum(prediction.polyarchy)} display={safeFmt(prediction.polyarchy)} bar invert
               tooltip="V-Dem electoral democracy index, standardized. Higher values indicate more democratic institutions" />
             <StatRow label="Military Regime" value={safeNum(prediction.milreg)} display={safeNum(prediction.milreg) === 1 ? "Yes" : "No"}
               tooltip="Whether the country is currently governed by a military regime" />
@@ -496,14 +496,12 @@ export default function PredictionPanel({
           <Section title="Society" score={socScore}>
             <StatRow label="Women's Political Participation"
               value={Math.min(Math.max((safeNum(prediction.wom_polpart) + 2) / 4, 0), 1)}
-              display={safeFmt(prediction.wom_polpart)} bar
+              display={safeFmt(prediction.wom_polpart)} bar invert
               tooltip="V-Dem index of women's participation in formal political processes, standardized" />
-            <StatRow label="Women's Civil Liberties" value={safeNum(prediction.wom_civlib)} display={safeFmt(prediction.wom_civlib)} bar
+            <StatRow label="Women's Civil Liberties" value={safeNum(prediction.wom_civlib)} display={safeFmt(prediction.wom_civlib)} bar invert
               tooltip="Index of civil liberties enjoyed by women (0–1). Low values indicate restricted freedoms" />
-            <StatRow label="Women's Political Employment" value={safeNum(prediction.women_polemp)} display={safeFmt(prediction.women_polemp)} bar
+            <StatRow label="Women's Political Employment" value={safeNum(prediction.women_polemp)} display={safeFmt(prediction.women_polemp)} bar invert
               tooltip="Share of women in political and senior official employment roles" />
-            <StatRow label="Protests" value={Math.min(safeNum(prediction.protests) / 5, 1)} display={safeFmt(prediction.protests)} bar invert
-              tooltip="Standardized log count of protest events. Higher unrest correlates with increased coup risk" />
             <StatRow label="Civil War" value={safeNum(prediction.cw)} display={safeNum(prediction.cw) === 1 ? "Yes" : "No"}
               tooltip="Whether the country is currently experiencing an active civil war" />
           </Section>

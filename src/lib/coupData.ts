@@ -20,7 +20,8 @@ export function buildPredictionProbMap(
   const map = new Map<string, number | null>();
   for (const p of predictions) {
     const key = cowNameToGeoJsonAdmin(p.country).toLowerCase().trim();
-    map.set(key, p.yhat ?? null);
+    const yhat = p.yhat != null && Number.isFinite(p.yhat) ? Math.max(0,p.yhat) : null; 
+    map.set(key, yhat);
   }
   // Greenland has no COW entry — color it the same as Denmark
   if (!map.has("greenland") && map.has("denmark")) {

@@ -18,13 +18,12 @@ type Props = {
 };
 
 const sliderLabels: Record<PredictiveSliderKey, string> = {
-  trade_glob: "Trade",
-  ch_gdppc: "GDP Change",
-  polyarchy: "Democracy",
-  wom_polpart: "Women Participation",
-  protests: "Protests",
-  milreg_prop: "Military Regime",
-  milit: "Military Influence",
+  trade_glob:     "Trade",
+  ch_gdppc:       "GDP Change",
+  polyarchy:      "Democracy",
+  wom_polpart:    "Women Participation",
+  milreg_prop:    "Military Regime",
+  milper_spliced: "Military Influence",
 };
 
 const sliderOrder: PredictiveSliderKey[] = [
@@ -32,9 +31,8 @@ const sliderOrder: PredictiveSliderKey[] = [
   "ch_gdppc",
   "polyarchy",
   "wom_polpart",
-  "protests",
   "milreg_prop",
-  "milit",
+  "milper_spliced",
 ];
 
 export default function PredictiveModeControls({
@@ -75,7 +73,6 @@ export default function PredictiveModeControls({
             Apply scenario changes to this country
           </div>
         </div>
-
         <button
           type="button"
           onClick={() => setPredictiveEnabled(!predictiveEnabled)}
@@ -140,8 +137,8 @@ export default function PredictiveModeControls({
           {mode === "scenario" && (
             <div className={css({ display: "grid", gap: "3" })}>
               {sliderOrder.map((key) => {
-                const isMilitaryRegime = key === "milreg_prop";
                 const value = sliderPercents[key];
+                const pct = value / 2; // 0–200 range maps to 0–100% fill
 
                 return (
                   <div key={key} className={css({ display: "grid", gap: "1" })}>
@@ -155,23 +152,19 @@ export default function PredictiveModeControls({
                     >
                       <span className={css({ color: "text.secondary" })}>{sliderLabels[key]}</span>
                       <span className={css({ fontWeight: "medium", color: "text.primary" })}>
-                        {isMilitaryRegime ? (value === 0 ? "Off" : "On") : `${value}%`}
+                        {value}%
                       </span>
                     </div>
-
                     <input
                       className="timeline-slider"
                       type="range"
                       min={0}
-                      max={isMilitaryRegime ? 1 : 200}
+                      max={200}
                       step={1}
                       value={value}
                       onChange={(e) => onSliderChange(key, Number(e.target.value))}
                       style={{
-                        background: (() => {
-                          const pct = isMilitaryRegime ? value * 100 : value / 2;
-                          return `linear-gradient(to right, #FF6A00 0%, #FF6A00 ${pct}%, #e5e7eb ${pct}%, #e5e7eb 100%)`;
-                        })(),
+                        background: `linear-gradient(to right, #FF6A00 0%, #FF6A00 ${pct}%, #e5e7eb ${pct}%, #e5e7eb 100%)`,
                       }}
                     />
                   </div>

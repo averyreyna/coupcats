@@ -39,26 +39,26 @@ export interface CoupPrediction{
   yhat: number | null;
  
   // Governance
-  closed_autocracy: number;
-  electoral_autocracy: number;
-  electoral_democracy: number;
-  liberal_democracy: number;
-  polyarchy: number | null;       // was Democracy_level
-  milreg: number;                  // was Military_regime
-  milit: number;                   // was Military_influence
+  closed_autocracy?: number;
+  electoral_autocracy?: number;
+  electoral_democracy?: number;
+  liberal_democracy?: number;
+  polyarchy: number;       // was Democracy_level
+  milreg?: number;                  // was Military_regime
+  milit?: number;                   // was Military_influence
   Leader_age: number | null;
   Leader_duration: number | null;
  
   // Economy
   gdppc: number | null;            // was GDP_per_cap
-  ch_gdppc: number | null;         // was Change_GDP_per_cap
+  ch_gdppc: number;         // was Change_GDP_per_cap
   ltrade: number | null;           // was Trade (no Inflation equivalent in new data)
  
   // Society
-  wom_polpart: number | null;      // was Women_political_participation
-  wom_civlib: number | null;
-  women_polemp: number | null;
-  protests: number | null;         // was Protests
+  wom_polpart: number;      // was Women_political_participation
+  wom_civlib: number;
+  women_polemp: number;
+  protests: number;         // was Protests
   cw: number;                      // was Civil_wars
  
   // Military
@@ -69,17 +69,8 @@ export interface CoupPrediction{
  
   // Context
   neighboring_coup: number | null;
-  cold: number;                    // was Cold_war
-  visit: number;
- 
-  // Region flags (needed to derive region label in header)
-  e_asia_pacific: number;
-  euro_cent_asia: number;
-  LA_carrib: number;
-  MENA: number;
-  N_america: number;
-  S_asia: number;
-  Sub_africa: number;
+  cold?: number;                    // was Cold_war
+  visit?: number;
 
   //Additional variables for regression model prediction
   pce: number;
@@ -104,9 +95,8 @@ export type PredictiveSliderKey =
   | "ch_gdppc"
   | "polyarchy"
   | "wom_polpart"
-  | "protests"
   | "milreg_prop"
-  | "milit";
+  | "milper_spliced";
 
 export type PredictiveMode = "baseline" | "scenario" | "futureMonths";
 
@@ -117,7 +107,6 @@ export const DEFAULT_PREDICTIVE_SLIDERS: PredictiveSliderPercents = {
   ch_gdppc: 100,
   polyarchy: 100,
   wom_polpart: 100,
-  protests: 100,
   milreg_prop: 100,
-  milit: 100,
+  milper_spliced: 100,
 };

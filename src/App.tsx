@@ -11,7 +11,7 @@ import MapLegend from "./components/MapLegend";
 import EventsHeatmapLegend from "./components/EventsHeatmapLegend";
 import Layout from "./components/Layout";
 import { useFilterStore } from "./store/useFilterStore";
-import { PREDICTION_NULL_COLOR, PREDICTION_ZERO_RISK_COLOR } from "./lib/colors";
+import { PREDICTION_NULL_COLOR } from "./lib/colors";
 import {
   getAllCoupEvents,
   buildPredictionProbMap,
@@ -56,31 +56,25 @@ function buildCountryHeatmapLayerStyle(
         "case",
         ["==", ["get", "yhat"], null as unknown as string],
         PREDICTION_NULL_COLOR,
-        ["<=", ["get", "yhat"], 0],
-        PREDICTION_ZERO_RISK_COLOR,
         [
-          "step",
+          // interpolate produces a smooth continuous gradient.
+          // yhat = 0 is valid very low risk and maps to green, not gray.
+          "interpolate",
+          ["linear"],
           ["get", "yhat"],
-          "#22c55e",
-          safeModerate,
-          "#eab308",
-          safeElevated,
-          "#f97316",
-          safeHigh,
-          "#ef4444",
+          0,            "#22c55e",
+          safeModerate, "#86efac",
+          safeElevated, "#eab308",
+          safeHigh,     "#ef4444",
         ],
       ],
-      "fill-opacity": 0.65,
+      "fill-opacity": 0.75,
     },
   };
 }
 
 function num(value: unknown, fallback = 0): number {
   return typeof value === "number" && Number.isFinite(value) ? value : fallback;
-}
-
-function logistic(x: number): number {
-  return 1 / (1 + Math.exp(-x));
 }
 
 function normalizeCountryKey(value: string | null | undefined): string {
@@ -111,26 +105,43 @@ function computeScenarioProbability(
   original: CoupPrediction,
   sliderPercents: PredictiveSliderPercents,
 ): number {
-  const baseYhat = num(original.yhat);
+  const trade_glob     = num(original.trade_glob)     * (num(sliderPercents.trade_glob,     100) / 100);
+  const ch_gdppc       = num(original.ch_gdppc)       * (num(sliderPercents.ch_gdppc,       100) / 100);
+  const polyarchy      = num(original.polyarchy)      * (num(sliderPercents.polyarchy,      100) / 100);
+  const wom_polpart    = num(original.wom_polpart)    * (num(sliderPercents.wom_polpart,    100) / 100);
+  const milreg_prop    = num(original.milreg_prop)    * (num(sliderPercents.milreg_prop,    100) / 100);
+  const milper_spliced = num(original.milper_spliced) * (num(sliderPercents.milper_spliced, 100) / 100);
 
-  // Convert baseline yhat into log-odds space so we can apply deltas from it.
-  // Clamping prevents Math.log(0) = -Infinity and Math.log(1/(1-1)) = +Infinity.
-  const baseLogOdds = Math.log(
-    Math.max(baseYhat, 1e-9) / Math.max(1 - baseYhat, 1e-9),
-  );
+  // Non-slider terms stay at their original values
+  const cold           = num(original.cold);
+  const pce            = num(original.pce);
+  const pce2           = num(original.pce2);
+  const pce3           = num(original.pce3);
+  const signal         = num(original.signal);
+  const mobilization   = num(original.mobilization);
+  const numleaders_10y = num(original.numleaders_10yr);
+  const mutiny6        = num(original.mutiny6);
 
-  // Each term: coefficient * originalValue * (percentChange / 100)
-  // When all sliders are at 100%, every term is 0, so delta = 0 and
-  // logistic(baseLogOdds + 0) == yhat exactly — the baseline is always preserved.
-  const delta =
-    -2.022e-3 * (num(original.trade_glob) * ((num(sliderPercents.trade_glob,     100) - 100) / 100)) +
-    -3.455e-1 * (num(original.ch_gdppc)   * ((num(sliderPercents.ch_gdppc,   100) - 100) / 100)) +
-    -1.771e-3 * (num(original.polyarchy)  * ((num(sliderPercents.polyarchy,  100) - 100) / 100)) +
-    -2.210e-3 * (num(original.wom_polpart)* ((num(sliderPercents.wom_polpart,100) - 100) / 100)) +
-     1.921e-3 * (num(original.milit)      * ((num(sliderPercents.milit,      100) - 100) / 100)) +
-     1.921e-3 * (num(original.protests)   * ((num(sliderPercents.protests,   100) - 100) / 100));
+  const intercept = 1.387e-2;  // your new intercept
 
-  return logistic(baseLogOdds + delta);
+  const x =
+    intercept +
+    -2.022e-3 * trade_glob +
+    -3.455e-1 * ch_gdppc +
+    -1.771e-3 * polyarchy +
+    -2.210e-3 * wom_polpart +
+     1.921e-3 * milreg_prop +
+    -1.289e-3 * milper_spliced +
+     1.641e-3 * cold +
+    -6.118e-5 * pce +
+     1.288e-7 * pce2 +
+    -8.026e-11* pce3 +
+    -2.464e-3 * signal +
+     7.844e-4 * mobilization +
+     2.459e-4 * numleaders_10y +
+     9.384e-3 * mutiny6;
+     
+  return x;
 }
 
 function computeAtLeastOneCoupWithinMonths(
@@ -222,14 +233,14 @@ export default function App() {
   // CHANGED: was fetching from GitHub (recent_data.json) which uses old field names and has no yhat.
   // Now reads current_yhat.json directly, which is the new-format data with yhat.
   useEffect(() => {
-    const rows = (currentYhatData as unknown as CoupPrediction[]).filter(
+    const rows = (currentYhatData as unkown as CoupPrediction[]).filter(
       (item) => typeof item.yhat === "number" && isFinite(item.yhat),
     );
     setRiskPredictions(rows);
   }, []);
 
   useEffect(() => {
-    const rows = (currentYhatData as unknown as Array<CoupPrediction & { yhat?: number }>).map(
+    const rows = (currentYhatData as unkonwn as Array<CoupPrediction & { yhat?: number }>).map(
       (item) => {
         const p = Number(item.yhat);
         const baseYhat = Number.isFinite(p) ? p : 0;
