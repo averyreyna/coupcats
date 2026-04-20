@@ -51,7 +51,8 @@ export default function TopRiskPanel({
       <div className="max-h-96 space-y-2 overflow-y-auto pr-1">
         {visibleCountries.map((c, i) => {
           const isSelected = selectedCountry === c.country;
-          const prob = c.prediction_prob ?? c.yhat ?? 0;
+          // CHANGED: was c.prediction_prob ?? c.yhat — prediction_prob removed from CoupPrediction, yhat is now the only source
+          const prob = c.yhat ?? 0;
 
           return (
             <button

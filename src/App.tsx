@@ -5,7 +5,6 @@ import type {
   FillLayerSpecification,
   MapLayerMouseEvent,
 } from "maplibre-gl";
-import { type CoupEvent, type CoupPrediction } from "./types/coup";
 import PredictionPanel from "./components/PredictionPanel";
 import EventPopup from "./components/EventPopup";
 import MapLegend from "./components/MapLegend";
@@ -15,7 +14,6 @@ import { useFilterStore } from "./store/useFilterStore";
 import { PREDICTION_NULL_COLOR } from "./lib/colors";
 import {
   getAllCoupEvents,
-  getPredictionFeatureCollection,
   buildPredictionProbMap,
   COW_TO_ADMIN_ALIASES,
 } from "./lib/coupData";
@@ -30,11 +28,12 @@ import { useClearSelectionOnMapClick } from "./hooks/useClearSelectionOnMapClick
 import currentYhatData from "./data/current_yhat.json";
 import {
   DEFAULT_PREDICTIVE_SLIDERS,
-  type PredictiveCountryData,
+  type CoupEvent,
+  type CoupPrediction,
   type PredictiveMode,
   type PredictiveSliderKey,
   type PredictiveSliderPercents,
-} from "./types/predictive";
+} from "./types/coup";
 
 const MAP_STYLE =
   "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json";
@@ -55,11 +54,12 @@ function buildCountryHeatmapLayerStyle(
     paint: {
       "fill-color": [
         "case",
-        ["==", ["get", "prediction_prob"], null as unknown as string],
+        // CHANGED: was "prediction_prob" — renamed to "yhat" to match GeoJSON feature property key
+        ["==", ["get", "yhat"], null as unknown as string],
         PREDICTION_NULL_COLOR,
         [
           "step",
-          ["get", "prediction_prob"],
+          ["get", "yhat"],
           "#22c55e",
           safeModerate,
           "#eab308",
@@ -92,8 +92,8 @@ function getPredictionValue(
   row: Partial<CoupPrediction> & { yhat?: unknown },
 ): number | null {
   const prob =
-    typeof row.prediction_prob === "number" && Number.isFinite(row.prediction_prob)
-      ? row.prediction_prob
+    typeof row.yhat === "number" && Number.isFinite(row.yhat)
+      ? row.yhat
       : null;
   if (prob != null) return prob;
 
@@ -107,66 +107,29 @@ function getPredictionValue(
 }
 
 function computeScenarioProbability(
-  original: PredictiveCountryData,
+  original: CoupPrediction,
   sliderPercents: PredictiveSliderPercents,
 ): number {
-  const Trade = num(original.Trade) * (num(sliderPercents.Trade, 100) / 100);
-  const Change_GDP_per_cap =
-    num(original.Change_GDP_per_cap) *
-    (num(sliderPercents.Change_GDP_per_cap, 100) / 100);
-  const Democracy_level =
-    num(original.Democracy_level) *
-    (num(sliderPercents.Democracy_level, 100) / 100);
-  const Women_political_participation =
-    num(original.Women_political_participation) *
-    (num(sliderPercents.Women_political_participation, 100) / 100);
-  const Protests =
-    num(original.Protests) * (num(sliderPercents.Protests, 100) / 100);
-  const Military_regime = sliderPercents.Military_regime === 0 ? 0 : 1;
-  const Military_influence =
-    num(original.Military_influence) *
-    (num(sliderPercents.Military_influence, 100) / 100);
+  const baseYhat = num(original.yhat);
 
-  const Cold_war = num(original.Cold_war);
-  const e_asia_pacific = num(original.e_asia_pacific);
-  const LA_carrib = num(original.LA_carrib);
-  const MENA = num(original.MENA);
-  const N_america = num(original.N_america);
-  const S_asia = num(original.S_asia);
-  const Sub_africa = num(original.Sub_africa);
-  const pce = num(original.pce);
-  const pce2 = num(original.pce2);
-  const pce3 = num(original.pce3);
-  const Democracy_squared = Democracy_level * Democracy_level;
-  const GDP_per_cap = num(original.GDP_per_cap);
-  const Civil_wars = num(original.Civil_wars);
+  // Convert baseline yhat into log-odds space so we can apply deltas from it.
+  // Clamping prevents Math.log(0) = -Infinity and Math.log(1/(1-1)) = +Infinity.
+  const baseLogOdds = Math.log(
+    Math.max(baseYhat, 1e-9) / Math.max(1 - baseYhat, 1e-9),
+  );
 
-  const intercept = -6.607;
+  // Each term: coefficient * originalValue * (percentChange / 100)
+  // When all sliders are at 100%, every term is 0, so delta = 0 and
+  // logistic(baseLogOdds + 0) == yhat exactly — the baseline is always preserved.
+  const delta =
+    -2.022e-3 * (num(original.trade_glob) * ((num(sliderPercents.trade_glob,     100) - 100) / 100)) +
+    -3.455e-1 * (num(original.ch_gdppc)   * ((num(sliderPercents.ch_gdppc,   100) - 100) / 100)) +
+    -1.771e-3 * (num(original.polyarchy)  * ((num(sliderPercents.polyarchy,  100) - 100) / 100)) +
+    -2.210e-3 * (num(original.wom_polpart)* ((num(sliderPercents.wom_polpart,100) - 100) / 100)) +
+     1.921e-3 * (num(original.milit)      * ((num(sliderPercents.milit,      100) - 100) / 100)) +
+     1.921e-3 * (num(original.protests)   * ((num(sliderPercents.protests,   100) - 100) / 100));
 
-  const x =
-    intercept +
-    -7.367e-2 * Trade +
-    -3.559e0 * Change_GDP_per_cap +
-    7.9264e0 * Democracy_level +
-    -9.8963e-1 * Women_political_participation +
-    2.5498e-1 * Protests +
-    1.2107e0 * Military_regime +
-    8.7481e-1 * Military_influence +
-    4.5741e-1 * Cold_war +
-    2.3207e-1 * e_asia_pacific +
-    8.2664e-1 * LA_carrib +
-    7.1901e-1 * MENA +
-    -1.1423e1 * N_america +
-    4.1404e-1 * S_asia +
-    7.9359e-1 * Sub_africa +
-    -5.7242e-3 * pce +
-    1.0202e-5 * pce2 +
-    -9.68e-9 * pce3 +
-    -8.5157e0 * Democracy_squared +
-    -1.104e-1 * GDP_per_cap +
-    2.4043e-1 * Civil_wars;
-
-  return logistic(x);
+  return logistic(baseLogOdds + delta);
 }
 
 function computeAtLeastOneCoupWithinMonths(
@@ -255,18 +218,17 @@ export default function App() {
   const [riskPredictions, setRiskPredictions] = useState<CoupPrediction[]>([]);
   const [forecastPredictions, setForecastPredictions] = useState<CoupPrediction[]>([]);
 
+  // CHANGED: was fetching from GitHub (recent_data.json) which uses old field names and has no yhat.
+  // Now reads current_yhat.json directly, which is the new-format data with yhat.
   useEffect(() => {
-    getPredictionFeatureCollection()
-      .then((fc) => {
-        setRiskPredictions((fc.features ?? []).map((f) => f.properties));
-      })
-      .catch((err) =>
-        console.error("Failed to load current-risk predictions:", err),
-      );
+    const rows = (currentYhatData as unknown as CoupPrediction[]).filter(
+      (item) => typeof item.yhat === "number" && isFinite(item.yhat),
+    );
+    setRiskPredictions(rows);
   }, []);
 
   useEffect(() => {
-    const rows = (currentYhatData as Array<CoupPrediction & { yhat?: number }>).map(
+    const rows = (currentYhatData as unknown as Array<CoupPrediction & { yhat?: number }>).map(
       (item) => {
         const p = Number(item.yhat);
         const baseYhat = Number.isFinite(p) ? p : 0;
@@ -276,7 +238,7 @@ export default function App() {
           ...item,
           monthsAhead,
           yhat: cumulative,
-          prediction_prob: cumulative,
+          // REMOVED: prediction_prob: cumulative — CoupPrediction no longer has this field; yhat is the canonical value
         };
       },
     );
@@ -293,7 +255,7 @@ export default function App() {
     if (riskPredictions.length === 0) return [];
 
     return riskPredictions.map((row) => {
-      const baseMonthly = row.prediction_prob ?? 0;
+      const baseMonthly = row.yhat ?? 0;
       const rowKey = normalizeCountryKey(row.country);
       const isSelectedCountry =
         selectedRiskCountryKey.length > 0 && rowKey === selectedRiskCountryKey;
@@ -301,7 +263,7 @@ export default function App() {
       if (!predictiveEnabled) {
         return {
           ...row,
-          rendered_prediction_prob: row.prediction_prob ?? null,
+          rendered_prediction_prob: row.yhat ?? null,
           rendered_months_prob: computeAtLeastOneCoupWithinMonths(
             baseMonthly,
             futureMonths,
@@ -312,13 +274,13 @@ export default function App() {
       if (predictiveMode === "scenario" && isSelectedCountry) {
         try {
           const scenarioProbability = computeScenarioProbability(
-            row as unknown as PredictiveCountryData,
+            row as unknown as CoupPrediction,
             predictiveSliderPercents,
           );
 
           return {
             ...row,
-            prediction_prob: scenarioProbability,
+            // REMOVED: prediction_prob: scenarioProbability — not a field on CoupPrediction; rendered_prediction_prob carries the display value
             rendered_prediction_prob: scenarioProbability,
             rendered_months_prob: computeAtLeastOneCoupWithinMonths(
               scenarioProbability,
@@ -332,7 +294,7 @@ export default function App() {
 
       return {
         ...row,
-        rendered_prediction_prob: row.prediction_prob ?? null,
+        rendered_prediction_prob: row.yhat ?? null,
         rendered_months_prob: computeAtLeastOneCoupWithinMonths(
           baseMonthly,
           futureMonths,
@@ -354,7 +316,7 @@ export default function App() {
 
       return {
         ...row,
-        prediction_prob: forecastProb,
+        // REMOVED: prediction_prob: forecastProb — not a field on CoupPrediction; yhat and rendered_prediction_prob carry this value
         rendered_prediction_prob: forecastProb,
         rendered_months_prob: forecastProb,
       };
@@ -384,12 +346,8 @@ export default function App() {
   const riskCountriesGeoJSON = useMemo(() => {
     if (!countriesGeoJSON || displayedRiskPredictionData.length === 0) return null;
 
-    const probMap = buildPredictionProbMap(
-      displayedRiskPredictionData.map((row) => ({
-        ...row,
-        prediction_prob: row.rendered_prediction_prob,
-      })),
-    );
+    // CHANGED: was mapping rows to add prediction_prob — buildPredictionProbMap now reads yhat directly, so no remapping needed
+    const probMap = buildPredictionProbMap(displayedRiskPredictionData);
 
     return {
       ...countriesGeoJSON,
@@ -402,7 +360,8 @@ export default function App() {
           ...f,
           properties: {
             ...f.properties,
-            prediction_prob: prob,
+            // CHANGED: was prediction_prob — renamed to yhat to match the map layer expression
+            yhat: prob,
           },
         };
       }),
@@ -438,7 +397,8 @@ export default function App() {
           ...f,
           properties: {
             ...f.properties,
-            prediction_prob: prob,
+            // CHANGED: was prediction_prob — renamed to yhat to match the map layer expression
+            yhat: prob,
           },
         };
       }),
@@ -451,10 +411,8 @@ export default function App() {
         ? displayedForecastPredictionData
         : displayedRiskPredictionData;
 
-    return source.map((row) => ({
-      ...row,
-      prediction_prob: row.rendered_prediction_prob,
-    }));
+    // REMOVED: was spreading prediction_prob: row.rendered_prediction_prob — riskBuckets now reads yhat, which is already on ...row
+    return source.map((row) => ({ ...row }));
   }, [viewMode, displayedForecastPredictionData, displayedRiskPredictionData]);
 
   const riskThresholds = useMemo(
@@ -816,7 +774,7 @@ export default function App() {
 
         <PredictionPanel
           prediction={selectedPrediction}
-
+          allPredictions={riskPredictions}
           riskThresholds={riskThresholds}
           onClose={() => { setSelectedRiskCountry(null); setSelectedGeoNames([]); }}
           predictiveEnabled={predictiveEnabled}

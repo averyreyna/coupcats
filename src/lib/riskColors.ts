@@ -75,10 +75,11 @@ export function buildChoroplethFillColor(
   predictions: CoupPrediction[],
 ): any[] {
   // Keep most recent prediction per country (highest year, then month)
-  // Skip entries without a valid prediction_prob
+  // Skip entries without a valid yhat
   const latest = new Map<string, CoupPrediction>();
   for (const p of predictions) {
-    const prob = p.yhat ?? p.prediction_prob;
+    // CHANGED: was p.yhat ?? p.prediction_prob — prediction_prob removed from CoupPrediction
+    const prob = p.yhat;
     if (prob == null || isNaN(prob)) continue;
     const geoName = cowNameToGeoJsonAdmin(p.country);
     const existing = latest.get(geoName);
@@ -100,14 +101,16 @@ export function buildChoroplethFillColor(
   // Find max probability to normalize the color scale.
   // Raw values are tiny (0–0.06), so without normalization everything looks gray.
   const maxProb = Math.max(
-    ...[...latest.values()].map((p) => p.yhat ?? p.prediction_prob ?? 0),
+    // CHANGED: was p.yhat ?? p.prediction_prob ?? 0 — prediction_prob removed from CoupPrediction
+    ...[...latest.values()].map((p) => p.yhat ?? 0),
     0.001,
   );
 
   // Build the match expression entries: [countryName, color, countryName, color, ...]
   const entries: string[] = [];
   for (const [geoName, pred] of latest) {
-    const rawProb = pred.yhat ?? pred.prediction_prob ?? 0;
+    // CHANGED: was pred.yhat ?? pred.prediction_prob ?? 0 — prediction_prob removed from CoupPrediction
+    const rawProb = pred.yhat ?? 0;
     const normalized = Math.min(rawProb / maxProb, 1);
     entries.push(geoName, riskScoreToColor(normalized));
   }

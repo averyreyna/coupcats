@@ -3,7 +3,7 @@ import type {
   PredictiveMode,
   PredictiveSliderKey,
   PredictiveSliderPercents,
-} from "../types/predictive";
+} from "../types/coup";
 
 type Props = {
   predictiveEnabled: boolean;
@@ -18,23 +18,23 @@ type Props = {
 };
 
 const sliderLabels: Record<PredictiveSliderKey, string> = {
-  Trade: "Trade",
-  Change_GDP_per_cap: "GDP Change",
-  Democracy_level: "Democracy",
-  Women_political_participation: "Women Participation",
-  Protests: "Protests",
-  Military_regime: "Military Regime",
-  Military_influence: "Military Influence",
+  trade_glob: "Trade",
+  ch_gdppc: "GDP Change",
+  polyarchy: "Democracy",
+  wom_polpart: "Women Participation",
+  protests: "Protests",
+  milreg_prop: "Military Regime",
+  milit: "Military Influence",
 };
 
 const sliderOrder: PredictiveSliderKey[] = [
-  "Trade",
-  "Change_GDP_per_cap",
-  "Democracy_level",
-  "Women_political_participation",
-  "Protests",
-  "Military_regime",
-  "Military_influence",
+  "trade_glob",
+  "ch_gdppc",
+  "polyarchy",
+  "wom_polpart",
+  "protests",
+  "milreg_prop",
+  "milit",
 ];
 
 export default function PredictiveModeControls({
@@ -140,7 +140,7 @@ export default function PredictiveModeControls({
           {mode === "scenario" && (
             <div className={css({ display: "grid", gap: "3" })}>
               {sliderOrder.map((key) => {
-                const isMilitaryRegime = key === "Military_regime";
+                const isMilitaryRegime = key === "milreg_prop";
                 const value = sliderPercents[key];
 
                 return (
@@ -161,7 +161,7 @@ export default function PredictiveModeControls({
                     <input
                       className="timeline-slider"
                       type="range"
-                      min={isMilitaryRegime ? 0 : 0}
+                      min={0}
                       max={isMilitaryRegime ? 1 : 200}
                       step={1}
                       value={value}
