@@ -464,12 +464,14 @@ export default function PredictionPanel({
               tooltip="Whether the country is currently governed by a military regime" />
             <StatRow label="Military in Politics" value={safeNum(prediction.milit)} display={safeNum(prediction.milit) === 1 ? "Yes" : "No"}
               tooltip="Whether the military has a formal or dominant role in the political system" />
-            <StatRow label="Leader Age" value={safeNum(prediction.Leader_age) / 100}
-              display={prediction.Leader_age != null ? `${prediction.Leader_age} years` : "N/A"}
-              tooltip="Age of the current head of state or government" />
-            <StatRow label="Leader Duration" value={safeNum(prediction.Leader_duration) / 30}
-              display={prediction.Leader_duration != null ? `${prediction.Leader_duration} months` : "N/A"}
-              tooltip="How long the current leader has been in power. Longer tenures can correlate with instability" />
+              {/*
+              <StatRow label="Leader Age" value={safeNum(prediction.Leader_age) / 100}
+                display={prediction.Leader_age != null ? `${prediction.Leader_age} years` : "N/A"}
+                tooltip="Age of the current head of state or government" />
+              <StatRow label="Leader Duration" value={safeNum(prediction.Leader_duration) / 30}
+                display={prediction.Leader_duration != null ? `${prediction.Leader_duration} months` : "N/A"}
+                tooltip="How long the current leader has been in power. Longer tenures can correlate with instability" />
+              */}
           </Section>
 
           <Section title="Economy" score={ecoScore}>
