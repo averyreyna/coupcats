@@ -11,7 +11,7 @@ import MapLegend from "./components/MapLegend";
 import EventsHeatmapLegend from "./components/EventsHeatmapLegend";
 import Layout from "./components/Layout";
 import { useFilterStore } from "./store/useFilterStore";
-import { PREDICTION_NULL_COLOR } from "./lib/colors";
+import { PREDICTION_NULL_COLOR, PREDICTION_ZERO_RISK_COLOR } from "./lib/colors";
 import {
   getAllCoupEvents,
   buildPredictionProbMap,
@@ -54,9 +54,10 @@ function buildCountryHeatmapLayerStyle(
     paint: {
       "fill-color": [
         "case",
-        // CHANGED: was "prediction_prob" — renamed to "yhat" to match GeoJSON feature property key
         ["==", ["get", "yhat"], null as unknown as string],
         PREDICTION_NULL_COLOR,
+        ["<=", ["get", "yhat"], 0],
+        PREDICTION_ZERO_RISK_COLOR,
         [
           "step",
           ["get", "yhat"],

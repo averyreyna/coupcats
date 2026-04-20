@@ -47,6 +47,12 @@ export function riskScoreToColor(score: number): string {
 export const NO_DATA_COLOR = "#0f172a"; // Slate-900, darker than land — reads as "unavailable"
 
 /**
+ * Color for countries with a prediction of exactly 0 — has data but zero risk.
+ * Distinct from NO_DATA_COLOR and from the green "very low" bucket.
+ */
+export const ZERO_RISK_COLOR = "#CED4DA"; // neutral-400 — grey, clearly inactive
+
+/**
  * Risk level labels for human-readable descriptions
  */
 export function getRiskLabel(score: number): string {
@@ -111,6 +117,10 @@ export function buildChoroplethFillColor(
   for (const [geoName, pred] of latest) {
     // CHANGED: was pred.yhat ?? pred.prediction_prob ?? 0 — prediction_prob removed from CoupPrediction
     const rawProb = pred.yhat ?? 0;
+    if (rawProb === 0) {
+      entries.push(geoName, ZERO_RISK_COLOR);
+      continue;
+    }
     const normalized = Math.min(rawProb / maxProb, 1);
     entries.push(geoName, riskScoreToColor(normalized));
   }

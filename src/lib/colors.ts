@@ -14,3 +14,4 @@ export const OUTCOME_LABELS: Record<CoupOutcome, string> = {
 export const PREDICTION_COLOR_STOPS = predictionColorStops;
 
 export const PREDICTION_NULL_COLOR = neutral[500];
+export const PREDICTION_ZERO_RISK_COLOR = neutral[300];
