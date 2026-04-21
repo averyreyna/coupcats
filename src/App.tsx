@@ -233,14 +233,14 @@ export default function App() {
   // CHANGED: was fetching from GitHub (recent_data.json) which uses old field names and has no yhat.
   // Now reads current_yhat.json directly, which is the new-format data with yhat.
   useEffect(() => {
-    const rows = (currentYhatData as unkown as CoupPrediction[]).filter(
+    const rows = (currentYhatData as unknown as CoupPrediction[]).filter(
       (item) => typeof item.yhat === "number" && isFinite(item.yhat),
     );
     setRiskPredictions(rows);
   }, []);
 
   useEffect(() => {
-    const rows = (currentYhatData as unkonwn as Array<CoupPrediction & { yhat?: number }>).map(
+    const rows = (currentYhatData as unknown as Array<CoupPrediction & { yhat?: number }>).map(
       (item) => {
         const p = Number(item.yhat);
         const baseYhat = Number.isFinite(p) ? p : 0;
