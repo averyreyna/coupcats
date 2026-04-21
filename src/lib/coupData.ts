@@ -27,6 +27,17 @@ export function buildPredictionProbMap(
   if (!map.has("greenland") && map.has("denmark")) {
     map.set("greenland", map.get("denmark")!);
   }
+  // Baikonur Cosmodrome is a leased enclave inside Kazakhstan
+  if (!map.has("baykonur cosmodrome") && map.has("kazakhstan")) {
+    map.set("baykonur cosmodrome", map.get("kazakhstan")!);
+  }
+  if (!map.has("baikonur cosmodrome") && map.has("kazakhstan")) {
+    map.set("baikonur cosmodrome", map.get("kazakhstan")!);
+  }
+  // Puerto Rico is a US territory — color it the same as the United States
+  if (!map.has("puerto rico") && map.has("united states of america")) {
+    map.set("puerto rico", map.get("united states of america")!);
+  }
   return map;
 }
 

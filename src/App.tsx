@@ -1,6 +1,8 @@
 import { useRef, useState, useCallback, useMemo, useEffect } from "react";
 import { css } from "styled-system/css";
 import { Map, Source, Layer, Popup, type MapRef } from "@vis.gl/react-maplibre";
+import { union } from "@turf/union";
+import { featureCollection } from "@turf/helpers";
 import type {
   FillLayerSpecification,
   MapLayerMouseEvent,
@@ -37,6 +39,67 @@ import {
 
 const MAP_STYLE =
   "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json";
+
+function removeTerritory(geojson: any, territoryName: string): any {
+  const lower = territoryName.toLowerCase();
+  return {
+    ...geojson,
+    features: geojson.features.filter((f: any) => {
+      const name = (f.properties?.ADMIN ?? f.properties?.name ?? "").toLowerCase();
+      return !name.includes(lower);
+    }),
+  };
+}
+
+function fillHolesInCountry(geojson: any, countryName: string): any {
+  return {
+    ...geojson,
+    features: geojson.features.map((f: any) => {
+      const name = f.properties?.ADMIN ?? f.properties?.name;
+      if (name !== countryName) return f;
+      const geom = f.geometry;
+      if (!geom) return f;
+      if (geom.type === "Polygon") {
+        return { ...f, geometry: { type: "Polygon", coordinates: [geom.coordinates[0]] } };
+      }
+      if (geom.type === "MultiPolygon") {
+        return {
+          ...f,
+          geometry: {
+            type: "MultiPolygon",
+            coordinates: geom.coordinates.map((poly: any) => [poly[0]]),
+          },
+        };
+      }
+      return f;
+    }),
+  };
+}
+
+function mergeTerritoryIntoCountry(geojson: any, territoryName: string, countryName: string): any {
+  const territory = geojson.features.find(
+    (f: any) => (f.properties?.ADMIN ?? f.properties?.name) === territoryName
+  );
+  if (!territory) return geojson;
+
+  const features = geojson.features
+    .map((f: any) => {
+      const name = f.properties?.ADMIN ?? f.properties?.name;
+      if (name !== countryName) return f;
+      const unioned = union(
+        featureCollection([
+          { type: "Feature", properties: {}, geometry: f.geometry },
+          { type: "Feature", properties: {}, geometry: territory.geometry },
+        ] as any),
+      );
+      if (!unioned) return f;
+      return { ...f, geometry: unioned.geometry };
+    })
+    .filter((f: any) => (f.properties?.ADMIN ?? f.properties?.name) !== territoryName);
+
+  return { ...geojson, features };
+}
+
 
 
 function buildCountryHeatmapLayerStyle(
@@ -162,7 +225,7 @@ type DisplayedPrediction = CoupPrediction & {
 export default function App() {
   const mapRef = useRef<MapRef>(null);
   const prevSelectedGeoNames = useRef<string[]>([]);
-  const hoveredCountryId = useRef<string | number | null>(null);
+  const hoveredCountryIds = useRef<(string | number)[]>([]);
   const [mapLoaded, setMapLoaded] = useState(false);
   const [countriesGeoJSON, setCountriesGeoJSON] = useState<any>(null);
   const [selectedRiskCountry, setSelectedRiskCountry] = useState<string | null>(null);
@@ -223,6 +286,12 @@ export default function App() {
       "https://raw.githubusercontent.com/datasets/geo-countries/master/data/countries.geojson",
     )
       .then((res) => res.json())
+      .then((data) => {
+        let geo = mergeTerritoryIntoCountry(data, "Somaliland", "Somalia");
+        geo = fillHolesInCountry(geo, "Kazakhstan");
+        geo = removeTerritory(geo, "Baykonur Cosmodrome");
+        return geo;
+      })
       .then((data) => setCountriesGeoJSON(data))
       .catch((err) => console.error("Failed to load countries GeoJSON:", err));
   }, []);
@@ -492,26 +561,34 @@ export default function App() {
       const countryFeature = e.features?.find((f) => f.layer?.id === "countries-fill");
       const newId = countryFeature?.id ?? null;
 
-      if (newId === hoveredCountryId.current) return;
+      const prev = hoveredCountryIds.current;
+      if (prev.length === 1 && prev[0] === newId) return;
+      if (prev.length === 0 && newId == null) return;
 
-      if (hoveredCountryId.current != null)
-        map.setFeatureState({ source: "countries", id: hoveredCountryId.current }, { hover: false });
+      for (const id of prev)
+        map.setFeatureState({ source: "countries", id }, { hover: false });
 
+      const nextIds: (string | number)[] = [];
       if (newId != null) {
-        map.setFeatureState({ source: "countries", id: newId }, { hover: true });
+        nextIds.push(newId);
+        if (typeof newId === "string")
+          for (const co of getCoHighlightNames(newId)) nextIds.push(co);
+        for (const id of nextIds)
+          map.setFeatureState({ source: "countries", id }, { hover: true });
         map.getCanvas().style.cursor = "pointer";
       }
 
-      hoveredCountryId.current = newId;
+      hoveredCountryIds.current = nextIds;
     },
     [mapRef],
   );
 
   const onMapMouseLeave = useCallback(() => {
     const map = mapRef.current?.getMap();
-    if (map && hoveredCountryId.current != null) {
-      map.setFeatureState({ source: "countries", id: hoveredCountryId.current }, { hover: false });
-      hoveredCountryId.current = null;
+    if (map && hoveredCountryIds.current.length > 0) {
+      for (const id of hoveredCountryIds.current)
+        map.setFeatureState({ source: "countries", id }, { hover: false });
+      hoveredCountryIds.current = [];
     }
     onMouseLeave();
   }, [mapRef, onMouseLeave]);
@@ -529,13 +606,14 @@ export default function App() {
 
       const countryFeature = e.features?.find((f) => f.layer?.id === "countries-fill");
       if (countryFeature) {
-        const countryName =
+        const rawName =
           countryFeature.properties?.ADMIN || countryFeature.properties?.name;
+        const countryName = rawName ? getDataLookupName(rawName) : null;
         if (countryName) {
           setSelectedCountry(countryName);
           setSelectedEvent(null);
           setSelectedRiskCountry(null);
-          setSelectedGeoNames([countryName, ...getCoHighlightNames(countryName)]);
+          setSelectedGeoNames(rawName ? [rawName, ...getCoHighlightNames(rawName)] : [countryName]);
           return;
         }
       }
@@ -691,13 +769,14 @@ export default function App() {
               const f = features.find((item) => item.layer?.id === "country-risk-fill");
               const adminName = f?.properties?.ADMIN ?? null;
               const geoName = f?.properties?.name ?? null;
-              const countryName = adminName ?? geoName;
+              const rawName = adminName ?? geoName;
+              const countryName = rawName ? getDataLookupName(rawName) : null;
               const geoNames = [...new Set([adminName, geoName].filter(Boolean) as string[])];
 
               setSelectedEvent(null);
               setSelectedCountry(null);
               setSelectedRiskCountry(countryName);
-              setSelectedGeoNames(countryName ? [...geoNames, ...getCoHighlightNames(countryName)] : []);
+              setSelectedGeoNames(rawName ? [...geoNames, ...getCoHighlightNames(rawName)] : []);
             } else {
               setSelectedEvent(null);
               setSelectedCountry(null);
@@ -705,7 +784,15 @@ export default function App() {
               setSelectedGeoNames([]);
             }
           }}
-          onLoad={() => setMapLoaded(true)}
+          onLoad={() => {
+            const map = mapRef.current?.getMap();
+            if (map) {
+              for (const id of ["boundary_state", "boundary_county"]) {
+                if (map.getLayer(id)) map.setLayoutProperty(id, "visibility", "none");
+              }
+            }
+            setMapLoaded(true);
+          }}
         >
           {countriesGeoJSON && (
             <Source id="countries" type="geojson" data={countriesGeoJSON} promoteId="name">
