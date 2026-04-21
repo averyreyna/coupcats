@@ -36,6 +36,9 @@ export function cowNameToGeoJsonAdmin(cowName: string): string {
  * Used when a territory (Greenland) or renamed country (Serbia, Cabo Verde) is clicked.
  */
 const GEOJSON_TO_COW_DATA: Record<string, string> = {
+  "Baykonur Cosmodrome":                "Kazakhstan",
+  "Baikonur Cosmodrome":                "Kazakhstan",
+  "Puerto Rico":                        "United States",
   "Greenland":                          "Denmark",
   "Republic of Serbia":                 "Yugoslavia",
   "Cabo Verde":                         "Cape Verde",
@@ -59,8 +62,13 @@ export function getDataLookupName(geoName: string): string {
  * when the given country is selected (e.g. Greenland ↔ Denmark).
  */
 const CO_HIGHLIGHT_PAIRS: Record<string, string[]> = {
-  "Greenland": ["Denmark"],
-  "Denmark":   ["Greenland"],
+  "Baykonur Cosmodrome": ["Kazakhstan"],
+  "Baikonur Cosmodrome": ["Kazakhstan"],
+  "Kazakhstan":          ["Baykonur Cosmodrome", "Baikonur Cosmodrome"],
+  "Puerto Rico":              ["United States of America"],
+  "United States of America": ["Puerto Rico"],
+  "Greenland":                ["Denmark"],
+  "Denmark":                  ["Greenland"],
 };
 
 export function getCoHighlightNames(geoName: string): string[] {
